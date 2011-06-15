@@ -1,4 +1,4 @@
-sparkleshare (0.2.2-1) UNRELEASED; urgency=low
+sparkleshare (0.2.2-1) experimental; urgency=low
 
   * Initial upload to Debian, adapted from packages by Andrea Colangelo
     <warp10@ubuntu.com> (Closes: #597053)
@@ -20,7 +20,7 @@ sparkleshare (0.2.2-1) UNRELEASED; urgency=low
   * [1ea4e93] Add new patch introducing shebang into Nautilus extension
   * [85651a2] Recommend python for the script (thanks, Lintian)
 
- -- Iain Lane <laney@debian.org>  Wed, 15 Jun 2011 22:56:31 +0100
+ -- Iain Lane <laney@debian.org>  Wed, 15 Jun 2011 22:59:01 +0100
 
 sparkleshare (0.2.1-0ppa2) oneiric; urgency=low
 
