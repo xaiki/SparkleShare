@@ -1,0 +1,432 @@
+# This file is distributed under the same license as the Sparkleshare package.
+# 
+# WARNING: Due to the nature of Transifex all translation file headers were lost
+# we apologise for any incovenience this may have caused and we hope to bring them
+# back in the future.
+# 
+# smeagiel <michielaiso@hotmail.com>, 2011
+# Łukasz Jernaś <deejay1@srem.org>, 2011
+msgid ""
+msgstr ""
+"Project-Id-Version: SparkleShare\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-05-28 19:48+0200\n"
+"PO-Revision-Date: 2011-05-28 17:48+0000\n"
+"Last-Translator: deejay1 <deejay1@srem.org>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: nl\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+
+#: ../SparkleShare/Mac/SparkleStatusIcon.cs:303
+#: ../SparkleShare/SparkleIntro.cs:65 ../SparkleShare/SparkleStatusIcon.cs:299
+msgid "Welcome to SparkleShare!"
+msgstr "Welkom bij SparkleShare!"
+
+#: ../SparkleShare/Mac/SparkleStatusIcon.cs:313
+#: ../SparkleShare/SparkleStatusIcon.cs:306
+msgid "Not everything is synced"
+msgstr "Niet alles is gesynchroniseerd"
+
+#: ../SparkleShare/Mac/SparkleStatusIcon.cs:318
+#: ../SparkleShare/SparkleStatusIcon.cs:312
+msgid "Up to date"
+msgstr "Up-to-date"
+
+#: ../SparkleShare/Mac/SparkleStatusIcon.cs:333
+#: ../SparkleShare/SparkleStatusIcon.cs:324
+msgid "Syncing…"
+msgstr "Synchroniseren…"
+
+#: ../SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in:113
+msgid "Copy Web Link"
+msgstr "Kopiëer weblink"
+
+#: ../SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in:114
+msgid "Copy the web address of this file to the clipboard"
+msgstr "Kopiëer het web-adres van dit bestand naar het plakbord"
+
+#: ../SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in:147
+msgid "Get Earlier Version"
+msgstr "Verkrijg eerdere versie"
+
+#: ../SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in:148
+msgid "Make a copy of an earlier version in this folder"
+msgstr "Maak een kopie van een oudere versie in deze map"
+
+#: ../SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in:161
+msgid "Select to get a copy of this version"
+msgstr "Selecteer voor een kopie van deze versie"
+
+#. A menu item that takes the user to http://www.sparkleshare.org/
+#: ../SparkleShare/SparkleAbout.cs:47 ../SparkleShare/SparkleStatusIcon.cs:225
+msgid "About SparkleShare"
+msgstr "Over SparkleShare"
+
+#: ../SparkleShare/SparkleAbout.cs:54
+msgid "A newer version is available"
+msgstr ""
+
+#: ../SparkleShare/SparkleAbout.cs:61
+msgid "You are running the latest version."
+msgstr ""
+
+#: ../SparkleShare/SparkleAbout.cs:88
+msgid "Checking for updates..."
+msgstr ""
+
+#: ../SparkleShare/SparkleAbout.cs:117
+msgid "_Show Credits"
+msgstr ""
+
+#: ../SparkleShare/SparkleAbout.cs:130
+msgid "_Visit Website"
+msgstr "_Bezoek website"
+
+#: ../SparkleShare/SparkleController.cs:392
+msgid "ddd MMM d, yyyy"
+msgstr ""
+
+#: ../SparkleShare/SparkleController.cs:397
+msgid "ddd MMM d"
+msgstr ""
+
+#: ../SparkleShare/SparkleController.cs:608
+#, csharp-format
+msgid "added ‘{0}’"
+msgstr "voegde ‘{0}’ toe"
+
+#: ../SparkleShare/SparkleController.cs:613
+#, csharp-format
+msgid "moved ‘{0}’"
+msgstr ""
+
+#: ../SparkleShare/SparkleController.cs:618
+#, csharp-format
+msgid "edited ‘{0}’"
+msgstr "bewerkte ‘{0}’"
+
+#: ../SparkleShare/SparkleController.cs:623
+#, csharp-format
+msgid "deleted ‘{0}’"
+msgstr "verwijderde ‘{0}’"
+
+#: ../SparkleShare/SparkleController.cs:632
+#, csharp-format
+msgid "and {0} more"
+msgid_plural "and {0} more"
+msgstr[0] ""
+msgstr[1] ""
+
+#: ../SparkleShare/SparkleController.cs:635
+msgid "did something magical"
+msgstr ""
+
+#: ../SparkleShare/SparkleIntro.cs:71
+msgid ""
+"Before we can create a SparkleShare folder on this computer, we need a few "
+"bits of information from you."
+msgstr ""
+"Voordat we een SparkleShare map op deze computer kunnen aanmaken, hebben we "
+"eerst wat informatie van je nodig."
+
+#: ../SparkleShare/SparkleIntro.cs:81
+msgid "Full Name:"
+msgstr "Volledige naam:"
+
+#: ../SparkleShare/SparkleIntro.cs:96
+msgid "Email:"
+msgstr "E-mailadres"
+
+#: ../SparkleShare/SparkleIntro.cs:107
+msgid "Next"
+msgstr "Volgende"
+
+#: ../SparkleShare/SparkleIntro.cs:113
+msgid "Configuring…"
+msgstr "Configureren…"
+
+#: ../SparkleShare/SparkleIntro.cs:159
+msgid "Where is your remote folder?"
+msgstr "Waar is je externe map?"
+
+#: ../SparkleShare/SparkleIntro.cs:172
+msgid "address-to-server.com"
+msgstr "adres-naar-server.com"
+
+#: ../SparkleShare/SparkleIntro.cs:177
+msgid "On my own server:"
+msgstr "Op mijn eigen server:"
+
+#: ../SparkleShare/SparkleIntro.cs:184
+msgid "Free hosting for Free and Open Source Software projects."
+msgstr "Gratis hosting voor Vrije en Open Source Software projecten."
+
+#: ../SparkleShare/SparkleIntro.cs:185
+msgid "Also has paid accounts for extra private space and bandwidth."
+msgstr ""
+"Heeft ook accounts tegen betaling voor extra privéruimte en bandbreedte."
+
+#: ../SparkleShare/SparkleIntro.cs:193
+msgid "The GNOME Project"
+msgstr "Het GNOME Project"
+
+#: ../SparkleShare/SparkleIntro.cs:195
+msgid "GNOME is an easy to understand interface to your computer."
+msgstr "GNOME is een makkelijk te begrijpen interface voor je computer."
+
+#: ../SparkleShare/SparkleIntro.cs:196
+msgid "Select this option if you’re a developer or designer working on GNOME."
+msgstr "Selecteer deze optie als je een GNOME vrijwilliger bent."
+
+#: ../SparkleShare/SparkleIntro.cs:204
+msgid "Gitorious"
+msgstr "Gitorious"
+
+#: ../SparkleShare/SparkleIntro.cs:206
+msgid "Completely Free as in Freedom infrastructure."
+msgstr "Volledig Free as in Freedom infrastructuur."
+
+#: ../SparkleShare/SparkleIntro.cs:207
+msgid "Free accounts for Free and Open Source projects."
+msgstr "Gratis accounts voor Vrije en Open Source Software projecten."
+
+#: ../SparkleShare/SparkleIntro.cs:218
+msgid "Username/Folder"
+msgstr "Gebruikersnaam/Map"
+
+#: ../SparkleShare/SparkleIntro.cs:223
+msgid "Project/Folder"
+msgstr "Project/Map"
+
+#: ../SparkleShare/SparkleIntro.cs:228
+msgid "Project"
+msgstr "Project"
+
+#: ../SparkleShare/SparkleIntro.cs:233 ../SparkleShare/SparkleIntro.cs:252
+msgid "Folder"
+msgstr "Map"
+
+#: ../SparkleShare/SparkleIntro.cs:257 ../SparkleShare/SparkleIntro.cs:410
+msgid "Folder Name:"
+msgstr "Mapnaam:"
+
+#: ../SparkleShare/SparkleIntro.cs:267
+msgid "Sync"
+msgstr "Synchroniseer"
+
+#: ../SparkleShare/SparkleIntro.cs:345
+msgid "Cancel"
+msgstr "Annuleren"
+
+#: ../SparkleShare/SparkleIntro.cs:353
+msgid "Skip"
+msgstr "Overslaan"
+
+#: ../SparkleShare/SparkleIntro.cs:380
+msgid "Invitation received!"
+msgstr "Uitnodiging ontvangen!"
+
+#: ../SparkleShare/SparkleIntro.cs:386
+msgid ""
+"You've received an invitation to join a shared folder.\n"
+"We're ready to hook you up immediately if you wish."
+msgstr ""
+"Je hebt een uitnodiging ontvangen om je bij een gedeelde map aan te sluiten.\n"
+"Als je wilt zorgen we ervoor dat dit meteen in orde komt."
+
+#: ../SparkleShare/SparkleIntro.cs:392
+msgid "Do you accept this invitation?"
+msgstr "Accepteer je deze uitnodiging?"
+
+#: ../SparkleShare/SparkleIntro.cs:401
+msgid "Server Address:"
+msgstr "Serveradres:"
+
+#: ../SparkleShare/SparkleIntro.cs:424
+msgid "Reject"
+msgstr "Weigeren"
+
+#: ../SparkleShare/SparkleIntro.cs:425
+msgid "Accept and Sync"
+msgstr "Accepteren en Synchroniseren"
+
+#: ../SparkleShare/SparkleIntro.cs:473
+msgid "Something went wrong…"
+msgstr "Er is iets fout gegaan…"
+
+#: ../SparkleShare/SparkleIntro.cs:479
+msgid "Try Again"
+msgstr "Opnieuw proberen"
+
+#: ../SparkleShare/SparkleIntro.cs:504
+#, csharp-format
+msgid "‘{0}’ has been successfully added"
+msgstr ""
+
+#: ../SparkleShare/SparkleIntro.cs:513
+msgid "Folder synced successfully!"
+msgstr "Map succesvol gesynchroniseerd!"
+
+#: ../SparkleShare/SparkleIntro.cs:520
+#, csharp-format
+msgid ""
+"Now you can access the synced files from ‘{0}’ in your SparkleShare folder."
+msgstr ""
+"Nu heb je toegang tot de gesynchoniseerde bestanden van ‘{0}’ in je "
+"SparkleShare map."
+
+#. A button that opens the synced folder
+#: ../SparkleShare/SparkleIntro.cs:528
+msgid "Open Folder"
+msgstr "Map openen"
+
+#: ../SparkleShare/SparkleIntro.cs:534 ../SparkleShare/SparkleIntro.cs:576
+#: ../SparkleShare/SparkleIntro.cs:640
+msgid "Finish"
+msgstr "Voltooien"
+
+#: ../SparkleShare/SparkleIntro.cs:561
+#, csharp-format
+msgid "Syncing folder ‘{0}’…"
+msgstr "Map ‘{0}’ aan het synchroniseren…"
+
+#: ../SparkleShare/SparkleIntro.cs:568
+msgid "This may take a while.\n"
+msgstr "Dit kan even duren.\n"
+
+#: ../SparkleShare/SparkleIntro.cs:569
+msgid "Are you sure it’s not coffee o'clock?"
+msgstr "Tijd voor een Cup-a-Soup?"
+
+#: ../SparkleShare/SparkleIntro.cs:615
+msgid "SparkleShare is ready to go!"
+msgstr "SparkleShare is er klaar voor!"
+
+#: ../SparkleShare/SparkleIntro.cs:621
+msgid ""
+"Now you can start accepting invitations from others. \n"
+"Just click on invitations you get by email and we will take care of the rest."
+msgstr ""
+"Nu kan je uitnodigingen accepteren van anderen. \n"
+"Klik gewoon op uitnodigingen die je per e-mail ontvangt en wij zorgen voor de rest."
+
+#: ../SparkleShare/SparkleIntro.cs:632
+msgid "Learn how to host your own SparkleServer"
+msgstr "Leer hoe je je eigen SparkleServer kan opzetten"
+
+#. TRANSLATORS: {0} is a folder name, and {1} is a server address
+#: ../SparkleShare/SparkleLog.cs:73
+#, csharp-format
+msgid "Events in ‘{0}’"
+msgstr "Gebeurtenissen in ‘{0}’"
+
+#: ../SparkleShare/SparkleLog.cs:120
+msgid "_Open Folder"
+msgstr "Map _openen"
+
+#: ../SparkleShare/SparkleShare.cs:53
+msgid "Sorry, you can't run SparkleShare with these permissions."
+msgstr "Sorry, SparkleShare kan niet gedraaid worden met deze rechten."
+
+#: ../SparkleShare/SparkleShare.cs:54
+msgid "Things would go utterly wrong."
+msgstr "Dingen zouden vresenlijk mis gaan"
+
+#: ../SparkleShare/SparkleShare.cs:63
+msgid "Don't show the notification icon"
+msgstr "Toon het notificatiepictogram niet."
+
+#: ../SparkleShare/SparkleShare.cs:64
+msgid "Print version information"
+msgstr "Druk versie-informatie af"
+
+#: ../SparkleShare/SparkleShare.cs:65
+msgid "Show this help text"
+msgstr "Toon deze helptekst"
+
+#: ../SparkleShare/SparkleShare.cs:114
+msgid "SparkleShare, a collaboration and sharing tool."
+msgstr ""
+
+#: ../SparkleShare/SparkleShare.cs:115
+msgid "Copyright (C) 2010 Hylke Bons"
+msgstr "Copyright (C) 2010 Hylke Bons"
+
+#: ../SparkleShare/SparkleShare.cs:117
+msgid "This program comes with ABSOLUTELY NO WARRANTY."
+msgstr "Er zit ABSOLUUT GEEN GARANTIE op dit programma."
+
+#: ../SparkleShare/SparkleShare.cs:119
+msgid "This is free software, and you are welcome to redistribute it "
+msgstr ""
+"Dit is vrije software en je bent van harte uitgenodigd om het te "
+"herdistribueren "
+
+#: ../SparkleShare/SparkleShare.cs:120
+msgid "under certain conditions. Please read the GNU GPLv3 for details."
+msgstr " onder bepaalde voorwaarden. Zie de GNU GPLv3 voor meer informatie."
+
+#: ../SparkleShare/SparkleShare.cs:122
+msgid "SparkleShare automatically syncs Git repositories in "
+msgstr "SparkleShare automatisch synchroniseerd Git repositories in "
+
+#: ../SparkleShare/SparkleShare.cs:123
+msgid "the ~/SparkleShare folder with their remote origins."
+msgstr "de ~/SparkleShare map met de externe bron."
+
+#: ../SparkleShare/SparkleShare.cs:125
+msgid "Usage: sparkleshare [start|stop|restart] [OPTION]..."
+msgstr "Gebruik: sparkleshare [start|stop|restart] [OPTION]..."
+
+#: ../SparkleShare/SparkleShare.cs:126
+msgid "Sync SparkleShare folder with remote repositories."
+msgstr "Synchroniseer de SparkleShare map met externe repositories"
+
+#: ../SparkleShare/SparkleShare.cs:128
+msgid "Arguments:"
+msgstr "Argumenten"
+
+#: ../SparkleShare/SparkleShare.cs:138
+msgid "SparkleShare "
+msgstr "SparkleShare "
+
+#: ../SparkleShare/SparkleStatusIcon.cs:177
+msgid "No Remote Folders Yet"
+msgstr "Nog geen externe mappen"
+
+#. Opens the wizard to add a new remote folder
+#: ../SparkleShare/SparkleStatusIcon.cs:185
+msgid "Add Remote Folder…"
+msgstr "Externe map toevoegen…"
+
+#: ../SparkleShare/SparkleStatusIcon.cs:212
+msgid "Turn Notifications Off"
+msgstr "Zet mededelingen uit"
+
+#: ../SparkleShare/SparkleStatusIcon.cs:214
+msgid "Turn Notifications On"
+msgstr "Zet mededelingen aan"
+
+#. A menu item that quits the application
+#: ../SparkleShare/SparkleStatusIcon.cs:236
+msgid "Quit"
+msgstr "Afsluiten"
+
+#: ../SparkleShare/SparkleUI.cs:105
+msgid "Ouch! Mid-air collision!"
+msgstr "Ouw! Botsing!"
+
+#: ../SparkleShare/SparkleUI.cs:106
+msgid "Don't worry, SparkleShare made a copy of each conflicting file."
+msgstr ""
+"Geen zorgen, SparkleShare heeft een kopie van elk conflicterend bestand "
+"gemaakt."
+
+#: ../SparkleShare/SparkleWindow.cs:41
+msgid "SparkleShare Setup"
+msgstr ""
+
+

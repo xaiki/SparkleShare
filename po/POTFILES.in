@@ -1,0 +1,18 @@
+# List of source files containing translatable strings.
+# Please keep this file in alphabetical order; run ./sort-potfiles
+# after adding files here.
+[encoding: UTF-8]
+SparkleShare/Mac/SparkleStatusIcon.cs
+SparkleShare/Mac/SparkleUI.cs
+SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in
+SparkleShare/SparkleAbout.cs
+SparkleShare/SparkleBubble.cs
+SparkleShare/SparkleController.cs
+SparkleShare/SparkleIntro.cs
+SparkleShare/SparkleLog.cs
+SparkleShare/SparkleShare.cs
+SparkleShare/SparkleSpinner.cs
+SparkleShare/SparkleStatusIcon.cs
+SparkleShare/SparkleUI.cs
+SparkleShare/SparkleWindow.cs
+
