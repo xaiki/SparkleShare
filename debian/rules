@@ -1,5 +1,9 @@
 #!/usr/bin/make -f
-export DH_VERBOSE=1
+
+include /usr/share/cli-common/cli.make
+
+override_dh_auto_configure:
+	dh_auto_configure -- MCS=/usr/bin/mono-csc
 
 %:
 	dh $@ 

@@ -2,27 +2,20 @@ Source: sparkleshare
 Section: utils
 Priority: optional
 Maintainer: Andrea Colangelo <warp10@ubuntu.com>
-Build-Depends: autotools-dev,
+Build-Depends: cli-common-dev (>= 0.5.7~),
                debhelper (>= 7.0.50~),
-               gtk-sharp2,
-               intltool,
-               libgtk2.0-cil-dev,
-               libndesk-dbus-glib1.0-cil-dev,
-               libndesk-dbus1.0-cil-dev,
+               libglib2.0-cil-dev (>= 2.12.2),
+               libgtk2.0-cil-dev (>= 2.12.2),
                libnotify-cil-dev,
-               libtool,
                libwebkit-cil-dev,
                mono-devel,
-               mono-runtime,
-               monodevelop,
-               nant,
                python-nautilus
 Standards-Version: 3.9.2
 Homepage: http://sparkleshare.org/
 
 Package: sparkleshare
 Architecture: any
-Depends: libwebkit1.1-cil, ${misc:Depends}, ${shlibs:Depends}
+Depends: ${misc:Depends}, ${shlibs:Depends}, ${cli:Depends}
 Description: Collaboration and sharing tool
  SparkleShare is a collaboration and sharing tool that is designed to keep
  things simple and to stay out of your way. It allows you to instantly sync
