@@ -23,7 +23,7 @@ Depends: git (>= 1.1.7),
          ${cli:Depends},
          ${misc:Depends},
          ${shlibs:Depends}
-Recommends: python-nautilus
+Recommends: python, python-nautilus
 Description: distributed collaboration and sharing tool
  SparkleShare is a collaboration and sharing tool that is designed to keep
  things simple and to stay out of your way. It allows you to instantly sync
