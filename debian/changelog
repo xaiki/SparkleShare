@@ -1,3 +1,27 @@
+sparkleshare (0.2.2-1) UNRELEASED; urgency=low
+
+  * Initial upload to Debian, adapted from packages by Andrea Colangelo
+    <warp10@ubuntu.com> (Closes: #597053)
+  * [f8efff7] Imported Upstream version 0.2.2
+  * [5e50d80] Run wrap-and-sort
+  * [944e7aa] Clean up build dependencies and use CLI packaging helpers
+  * [d7a3a0e] Imported Upstream version 0.2.2
+  * [cccd3b7] Set maintainer to CLI applications team
+  * [84c59dd] Rewrap long description
+  * [d30ebf1] Depend on git & gvfs, and recommend python-nautilus.
+    Required for a reasonable amount of functionality
+  * [3a47a7b] Update copyright
+  * [e350f34] Add watch file
+  * [8fdff91] Add missing intltool BD
+  * [bf42781] Update package description
+  * [6640d37] Add new patch to check for both 2.0 and 4.0 libs.
+    This is to be compatible with mono 2.6 and 2.10. Also autoreconf to pick
+    this up.
+  * [1ea4e93] Add new patch introducing shebang into Nautilus extension
+  * [85651a2] Recommend python for the script (thanks, Lintian)
+
+ -- Iain Lane <laney@debian.org>  Wed, 15 Jun 2011 22:56:31 +0100
+
 sparkleshare (0.2.1-0ppa2) oneiric; urgency=low
 
   * debian/control: add dependency on libwebkit1.1-cil to fix crash on
