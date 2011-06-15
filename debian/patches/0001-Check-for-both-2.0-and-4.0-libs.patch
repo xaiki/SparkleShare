@@ -1,0 +1,43 @@
+From: Iain Lane <laney@debian.org>
+Date: Wed, 15 Jun 2011 21:22:19 +0100
+Subject: Check for both 2.0 and 4.0 libs
+
+---
+ configure.ac |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
+
+Index: sparkleshare/configure.ac
+===================================================================
+--- sparkleshare.orig/configure.ac	2011-06-15 22:02:40.004654560 +0100
++++ sparkleshare/configure.ac	2011-06-15 22:22:35.487775586 +0100
+@@ -40,11 +40,18 @@
+ SHAMROCK_CHECK_MONO_MODULE(2.2)
+ SHAMROCK_FIND_MONO_2_0_COMPILER
+ SHAMROCK_FIND_MONO_RUNTIME
++    
++PKG_CHECK_EXISTS([mono >= 2.10],
++SHAMROCK_CHECK_MONO_4_0_GAC_ASSEMBLIES([
++    System
++    System.Security
++    Mono.Posix
++]),
+ SHAMROCK_CHECK_MONO_2_0_GAC_ASSEMBLIES([
+     System
+     System.Security
+     Mono.Posix
+-])
++]))
+ 
+ SPARKLESHARE_CHECK_NOTIFY_SHARP
+ 
+Index: sparkleshare/Makefile.am
+===================================================================
+--- sparkleshare.orig/Makefile.am	2011-06-15 22:22:41.347545525 +0100
++++ sparkleshare/Makefile.am	2011-06-15 22:22:44.217432851 +0100
+@@ -1,6 +1,5 @@
+ SUBDIRS =	\
+ 	build	\
+-	help	\
+ 	SmartIrc4net \
+ 	SparkleLib \
+ 	SparkleShare \
