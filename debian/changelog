@@ -5,14 +5,12 @@ sparkleshare (0.2.2-1) experimental; urgency=low
   * [f8efff7] Imported Upstream version 0.2.2
   * [5e50d80] Run wrap-and-sort
   * [944e7aa] Clean up build dependencies and use CLI packaging helpers
-  * [d7a3a0e] Imported Upstream version 0.2.2
   * [cccd3b7] Set maintainer to CLI applications team
   * [84c59dd] Rewrap long description
   * [d30ebf1] Depend on git & gvfs, and recommend python-nautilus.
     Required for a reasonable amount of functionality
   * [3a47a7b] Update copyright
   * [e350f34] Add watch file
-  * [8fdff91] Add missing intltool BD
   * [bf42781] Update package description
   * [6640d37] Add new patch to check for both 2.0 and 4.0 libs.
     This is to be compatible with mono 2.6 and 2.10. Also autoreconf to pick
