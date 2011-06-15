@@ -1,0 +1,21 @@
+Source: sparkleshare
+Section: utils
+Priority: optional
+Maintainer: Andrea Colangelo <warp10@ubuntu.com>
+Build-Depends: debhelper (>= 7.0.50~), autotools-dev, gtk-sharp2, mono-runtime, mono-devel, monodevelop, libndesk-dbus1.0-cil-dev, nant, libnotify-cil-dev, libgtk2.0-cil-dev, libwebkit-cil-dev, intltool, libtool, python-nautilus, libndesk-dbus-glib1.0-cil-dev
+Standards-Version: 3.9.2
+Homepage: http://sparkleshare.org/
+
+Package: sparkleshare
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, libwebkit1.1-cil
+Description: Collaboration and sharing tool
+ SparkleShare is a collaboration and sharing tool that is designed to keep
+ things simple and to stay out of your way. It allows you to instantly sync
+ with any Git repository you have access to.
+ .
+ Though SparkleShare is not made to be a graphical frontend 
+ for git or a backup tool, it may be useful for other kinds of purposes as well, 
+ like backing up small files or monitoring your favourite project. In contrast 
+ to the projects name, we will very likely refuse to implement your personal 
+ ponies.

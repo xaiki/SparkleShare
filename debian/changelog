@@ -1,0 +1,13 @@
+sparkleshare (0.2.1-0ppa2) oneiric; urgency=low
+
+  * debian/control: add dependency on libwebkit1.1-cil to fix crash on
+    startup (thanks to Alin Andrei for reporting and fixing this bug).
+  * debian/copyright: update.
+
+ -- Andrea Colangelo <warp10@ubuntu.com>  Wed, 15 Jun 2011 11:53:00 +0200
+
+sparkleshare (0.2.1-0ppa1) oneiric; urgency=low
+
+  * Initial release.
+
+ -- Andrea Colangelo <warp10@ubuntu.com>  Thu, 09 Jun 2011 08:53:08 +0200
