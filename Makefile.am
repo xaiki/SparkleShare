@@ -7,8 +7,9 @@ SUBDIRS =	\
 	data \
 	po
 
-EXTRA_DIST = gnome-doc-utils.make \
-             LICENSE
+EXTRA_DIST = \
+	gnome-doc-utils.make \
+	LICENSE
 
 DISTCLEANFILES = \
 	intltool-extract        \
