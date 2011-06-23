@@ -1,3 +1,12 @@
+sparkleshare (0.2.2-1ubuntu1) UNRELEASED; urgency=low
+
+  * [3c55d25] Add gbp.conf for Ubuntu branch.
+    Ubuntu sources are stored as a branch in Debian's git repository. Please
+    try to use this if possible (contact the Debian maintainers for merges).
+  * [a25c5e9] Add BD on libappindicator# to enable app indicator support
+
+ -- Iain Lane <laney@debian.org>  Thu, 23 Jun 2011 21:06:17 +0100
+
 sparkleshare (0.2.2-1) experimental; urgency=low
 
   * Initial upload to Debian, adapted from packages by Andrea Colangelo
