@@ -1,4 +1,4 @@
-sparkleshare (0.2.2-1ubuntu1) UNRELEASED; urgency=low
+sparkleshare (0.2.2-1ubuntu1) oneiric; urgency=low
 
   * [3c55d25] Add gbp.conf for Ubuntu branch.
     Ubuntu sources are stored as a branch in Debian's git repository. Please
