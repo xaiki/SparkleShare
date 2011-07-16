@@ -8,8 +8,8 @@ Subject: Add missing shebang to nautilus extension
 
 Index: sparkleshare/SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in
 ===================================================================
---- sparkleshare.orig/SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in	2011-06-15 22:35:05.748332782 +0100
-+++ sparkleshare/SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in	2011-06-15 22:35:35.367170954 +0100
+--- sparkleshare.orig/SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in	2011-06-15 22:36:07.265919736 +0100
++++ sparkleshare/SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in	2011-07-16 18:15:25.260392307 +0100
 @@ -1,3 +1,4 @@
 +#!/usr/bin/python
  #   SparkleShare, an instant update workflow to Git.
@@ -17,9 +17,10 @@ Index: sparkleshare/SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in
  #
 Index: sparkleshare/po/POTFILES.skip
 ===================================================================
---- sparkleshare.orig/po/POTFILES.skip	2011-06-15 22:35:45.186785778 +0100
-+++ sparkleshare/po/POTFILES.skip	2011-06-15 22:35:49.006635944 +0100
-@@ -1,2 +1,3 @@
+--- sparkleshare.orig/po/POTFILES.skip	2011-07-16 18:12:00.808340098 +0100
++++ sparkleshare/po/POTFILES.skip	2011-07-16 18:15:25.260392307 +0100
+@@ -1,3 +1,4 @@
+ MacCore/src/Options.cs
  SparkleShare/Nautilus/sparkleshare-nautilus-extension.py
  SparkleLib/SparkleOptions.cs
 +.pc/0002-Add-missing-shebang-to-nautilus-extension.patch/SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in
