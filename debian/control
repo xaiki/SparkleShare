@@ -4,7 +4,6 @@ Priority: optional
 Maintainer: Debian CLI Applications Team <pkg-cli-apps-team@lists.alioth.debian.org>
 Uploaders: Iain Lane <laney@debian.org>
 Build-Depends: debhelper (>= 7.0.50~),
-               dh-autoreconf,
                cli-common-dev (>= 0.5.7~),
                intltool,
                libglib2.0-cil-dev (>= 2.12.2),
