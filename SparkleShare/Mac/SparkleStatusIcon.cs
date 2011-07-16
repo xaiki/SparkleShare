@@ -44,7 +44,6 @@ namespace SparkleShare {
         private NSMenuItem AboutMenuItem;
         private NSMenuItem NotificationsMenuItem;
         private NSMenuItem RecentEventsMenuItem;
-        private NSMenuItem QuitMenuItem;
         
         private delegate void Task ();
         private EventHandler [] Tasks;
@@ -114,7 +113,7 @@ namespace SparkleShare {
             FrameNumber = 0;
 
             Timer Animation = new Timer () {
-                Interval = 35
+                Interval = 40
             };
 
             Animation.Elapsed += delegate {
