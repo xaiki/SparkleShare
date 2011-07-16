@@ -1,3 +1,10 @@
+sparkleshare (0.2.4-1ubuntu1) oneiric; urgency=low
+
+  * Merge from Debian experimental, remaining changes:
+    + Add BD on libappindicator# to enable app indicator support
+
+ -- Iain Lane <laney@debian.org>  Sat, 16 Jul 2011 19:11:17 +0100
+
 sparkleshare (0.2.4-1) experimental; urgency=low
 
   * [7aa8901] Imported Upstream version 0.2.4
