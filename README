@@ -28,7 +28,7 @@ Run on Linux:
 
 SparkleShare currently requires:
 
-   - git >= 1.7
+   - git >= 1.7.1
    - gtk-sharp2 >= 2.12.7
    - mono-core >= 2.2
    - ndesk-dbus >= 0.6
@@ -78,8 +78,8 @@ On Fedora:
 
    $ sudo yum install gtk-sharp2-devel mono-core mono-devel monodevelop \
      ndesk-dbus-devel ndesk-dbus-glib-devel nautilus-python-devel nant \
-     notify-sharp-devel webkit-gtk-devel webkit-sharp-devel webkitgtk-devel \
-     libtool intltool
+     notify-sharp-devel webkit-sharp-devel webkitgtk-devel libtool intltool \
+     gnome-doc-utils
 
 
 You can build and install SparkleShare like this:

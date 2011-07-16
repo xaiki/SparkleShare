@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 using MonoMac.Foundation;
@@ -70,14 +71,14 @@ namespace SparkleShare {
 
         private void CreateEvents ()
         {
-            Separator = new NSBox (new RectangleF (0, 573, 480, 1)) {
+            Separator = new NSBox (new RectangleF (0, 579, 480, 1)) {
                 BorderColor = NSColor.LightGray,
                 BoxType = NSBoxType.NSBoxCustom
             };
 
             ContentView.AddSubview (Separator);
 
-            WebView = new WebView (new RectangleF (0, 0, 480, 573   ), "", ""){
+            WebView = new WebView (new RectangleF (0, 0, 480, 579), "", "") {
                 PolicyDelegate = new SparkleWebPolicyDelegate ()
             };
 
@@ -97,16 +98,26 @@ namespace SparkleShare {
                 this.popup_button.RemoveFromSuperview ();
 
             this.popup_button = new NSPopUpButton () {
-                Frame     = new RectangleF (480 - 156 - 8, 640 - 31 - 26, 156, 26),
+                Frame     = new RectangleF (480 - 156 - 8, 640 - 31 - 24, 156, 26),
                 PullsDown = false
             };
-            
+
+            this.popup_button.Cell.ControlSize = NSControlSize.Small;
+            this.popup_button.Font = NSFontManager.SharedFontManager.FontWithFamily
+                    ("Lucida Grande", NSFontTraitMask.Condensed, 0, NSFont.SmallSystemFontSize);
+
             this.popup_button.AddItem ("All Folders");
             this.popup_button.Menu.AddItem (NSMenuItem.SeparatorItem);
             this.popup_button.AddItems (SparkleShare.Controller.Folders.ToArray ());
 
+            if (this.selected_log != null &&
+                !SparkleShare.Controller.Folders.Contains (this.selected_log)) {
+
+                this.selected_log = null;
+            }
+
             this.popup_button.Activated += delegate {
-                if (popup_button.IndexOfSelectedItem == 0)
+                if (this.popup_button.IndexOfSelectedItem == 0)
                     this.selected_log = null;
                 else
                     this.selected_log = this.popup_button.SelectedItem.Title;
@@ -210,10 +221,30 @@ namespace SparkleShare {
         public override void DecidePolicyForNavigation (WebView web_view, NSDictionary action_info,
             NSUrlRequest request, WebFrame frame, NSObject decision_token)
         {
-            string file_path = request.Url.ToString ();
-            file_path = file_path.Replace ("%20", " ");
-            
-            NSWorkspace.SharedWorkspace.OpenFile (file_path);
+            string url = request.Url.ToString ();
+
+            if (url.StartsWith (Path.VolumeSeparatorChar.ToString ())) {
+                string file_path = request.Url.ToString ();
+                file_path = file_path.Replace ("%20", " ");
+
+                NSWorkspace.SharedWorkspace.OpenFile (file_path);
+
+            } else {
+                Regex regex = new Regex (@"(.+)~(.+)~(.+)");
+                Match match = regex.Match (url);
+
+                if (match.Success) {
+                    string folder_name = match.Groups [1].Value;
+                    string revision    = match.Groups [2].Value;
+                    string note        = match.Groups [3].Value.Replace ("%20", " ");
+
+                    Thread thread = new Thread (new ThreadStart (delegate {
+                        SparkleShare.Controller.AddNoteToFolder (folder_name, revision, note);
+                    }));
+
+                    thread.Start ();
+                }
+            }
         }
     }
 }

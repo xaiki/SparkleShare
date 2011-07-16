@@ -19,7 +19,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace SparkleLib {
 
@@ -63,8 +66,9 @@ namespace SparkleLib {
                 git.WaitForExit ();
 
                 if (git.ExitCode == 0) {
-                    string output   = git.StandardOutput.ReadToEnd ();
+                    string output = git.StandardOutput.ReadToEnd ();
                     return output.TrimEnd ();
+
                 } else {
                     return null;
                 }
@@ -88,7 +92,10 @@ namespace SparkleLib {
             if (!remote_revision.StartsWith (CurrentRevision)) {
                 SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Remote changes found. (" + remote_revision + ")");
                 return true;
+
             } else {
+                SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Fetching notes");
+                SyncDown ();
                 return false;
             }
         }
@@ -115,14 +122,14 @@ namespace SparkleLib {
 
         public override bool SyncDown ()
         {
-            SparkleGit git = new SparkleGit (LocalPath, "fetch -v origin master");
-
+            SparkleGit git = new SparkleGit (LocalPath, "fetch -v");
             git.Start ();
             git.WaitForExit ();
 
             if (git.ExitCode == 0) {
                 Rebase ();
                 return true;
+
             } else {
                 return false;
             }
@@ -339,7 +346,6 @@ namespace SparkleLib {
 
 
         // Returns a list of the latest change sets
-        // TODO: Method needs to be made a lot faster
         public override List <SparkleChangeSet> GetChangeSets (int count)
         {
             if (count < 1)
@@ -347,7 +353,7 @@ namespace SparkleLib {
 
             List <SparkleChangeSet> change_sets = new List <SparkleChangeSet> ();
 
-            SparkleGit git_log = new SparkleGit (LocalPath, "log -" + count + " --raw -M --date=iso");
+            SparkleGit git_log = new SparkleGit (LocalPath, "log -" + count + " --raw -M --date=iso --show-notes=*");
             Console.OutputEncoding = System.Text.Encoding.Unicode;
             git_log.Start ();
 
@@ -388,7 +394,6 @@ namespace SparkleLib {
                                 "([0-9]{2}):([0-9]{2}):([0-9]{2}) (.[0-9]{4})\n" +
                                 "*", RegexOptions.Compiled);
 
-            // TODO: Need to optimise for speed
             foreach (string log_entry in entries) {
                 Regex regex;
                 bool is_merge_commit = false;
@@ -405,32 +410,23 @@ namespace SparkleLib {
                 if (match.Success) {
                     SparkleChangeSet change_set = new SparkleChangeSet ();
 
-                    change_set.Folder    = Name;
-                    change_set.Revision  = match.Groups [1].Value;
-                    change_set.UserName  = match.Groups [2].Value;
-                    change_set.UserEmail = match.Groups [3].Value;
-                    change_set.IsMerge   = is_merge_commit;
+                    change_set.Folder        = Name;
+                    change_set.Revision      = match.Groups [1].Value;
+                    change_set.UserName      = match.Groups [2].Value;
+                    change_set.UserEmail     = match.Groups [3].Value;
+                    change_set.IsMerge       = is_merge_commit;
+                    change_set.SupportsNotes = true;
 
                     change_set.Timestamp = new DateTime (int.Parse (match.Groups [4].Value),
                         int.Parse (match.Groups [5].Value), int.Parse (match.Groups [6].Value),
                         int.Parse (match.Groups [7].Value), int.Parse (match.Groups [8].Value),
                         int.Parse (match.Groups [9].Value));
 
-                    string time_zone = match.Groups [10].Value;
-                    int our_offset   = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours;
-                    int their_offset = int.Parse (time_zone.Substring (1, 2));
-
-                    // Convert their timestamp to UTC timezone
-                    if (their_offset > 0)
-                       change_set.Timestamp = change_set.Timestamp.AddHours (their_offset * -1);
-                    else
-                       change_set.Timestamp = change_set.Timestamp.AddHours (their_offset);
-
-                    // Convert the UTC timestamp into our timezone
-                    if (our_offset > 0)
-                       change_set.Timestamp = change_set.Timestamp.AddHours (our_offset);
-                    else
-                       change_set.Timestamp = change_set.Timestamp.AddHours (our_offset * -1);
+                    string time_zone     = match.Groups [10].Value;
+                    int our_offset       = TimeZone.CurrentTimeZone.GetUtcOffset(DateTime.Now).Hours;
+                    int their_offset     = int.Parse (time_zone.Substring (0, 3));
+                    change_set.Timestamp = change_set.Timestamp.AddHours (their_offset * -1);
+                    change_set.Timestamp = change_set.Timestamp.AddHours (our_offset);
 
 
                     string [] entry_lines = log_entry.Split ("\n".ToCharArray ());
@@ -458,6 +454,26 @@ namespace SparkleLib {
 
                                 change_set.MovedFrom.Add (file_path);
                                 change_set.MovedTo.Add (to_file_path);
+                            }
+
+                        } else if (entry_line.StartsWith ("    <note>")) {
+
+                            Regex regex_notes = new Regex (@"<name>(.+)</name>.*" +
+                                                            "<email>(.+)</email>.*" +
+                                                            "<timestamp>([0-9]+)</timestamp>.*" +
+                                                            "<body>(.+)</body>", RegexOptions.Compiled);
+
+                            Match match_notes = regex_notes.Match (entry_line);
+
+                            if (match_notes.Success) {
+                                SparkleNote note = new SparkleNote () {
+                                    UserName  = match_notes.Groups [1].Value,
+                                    UserEmail = match_notes.Groups [2].Value,
+                                    Timestamp = new DateTime (1970, 1, 1).AddSeconds (int.Parse (match_notes.Groups [3].Value)),
+                                    Body      = match_notes.Groups [4].Value
+                                };
+
+                                change_set.Notes.Add (note);
                             }
                         }
                     }
@@ -538,13 +554,56 @@ namespace SparkleLib {
         }
 
 
-        public override void CreateInitialChangeSet ()
+        public override void AddNote (string revision, string note)
         {
-            base.CreateInitialChangeSet ();
-            Add ();
+            string url = SparkleConfig.DefaultConfig.GetUrlForFolder (Name);
 
-            string message = FormatCommitMessage ();
-            Commit (message);
+            if (url.StartsWith ("git") || url.StartsWith ("http"))
+                return;
+
+            int timestamp = (int) (DateTime.UtcNow - new DateTime (1970, 1, 1)).TotalSeconds;
+
+            // Create the note in one line for easier merging
+            note = "<note>" +
+                   "  <user>" +
+                   "    <name>" + SparkleConfig.DefaultConfig.UserName + "</name>" +
+                   "    <email>" + SparkleConfig.DefaultConfig.UserEmail + "</email>" +
+                   "  </user>" +
+                   "  <timestamp>" + timestamp + "</timestamp>" +
+                   "  <body>" + note + "</body>" +
+                   "</note>";
+
+            string note_namespace = SHA1 (timestamp.ToString () + note);
+            SparkleGit git_notes = new SparkleGit (LocalPath,
+                "notes --ref=" + note_namespace + " append -m \"" + note + "\" " + revision);
+            git_notes.Start ();
+            git_notes.WaitForExit ();
+
+            SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Added note to " + revision);
+            SyncUpNotes ();
+        }
+
+
+        public override void SyncUpNotes ()
+        {
+            while (Status != SyncStatus.Idle) {
+                System.Threading.Thread.Sleep (5 * 20);
+            }
+
+            SparkleGit git_push = new SparkleGit (LocalPath, "push origin refs/notes/*");
+            git_push.Start ();
+            git_push.WaitForExit ();
+
+            if (git_push.ExitCode == 0) {
+                SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Notes pushed");
+
+            } else {
+                HasUnsyncedChanges = true;
+                SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Pushing notes failed, trying again later");
+            }
+
+            SparkleAnnouncement announcement = new SparkleAnnouncement (Identifier, SHA1 (DateTime.Now.ToString ()));
+            base.listener.Announce (announcement);
         }
 
 
@@ -554,6 +613,23 @@ namespace SparkleLib {
                 string file_path = SparkleHelpers.CombineMore (LocalPath, ".git", "disable_notification_center");
                 return !File.Exists (file_path);
             }
+        }
+
+
+        public override void CreateInitialChangeSet ()
+        {
+            base.CreateInitialChangeSet ();
+            SyncUp ();
+        }
+
+
+        // Creates a SHA-1 hash of input
+        private string SHA1 (string s)
+        {
+            SHA1 sha1 = new SHA1CryptoServiceProvider ();
+            Byte[] bytes = ASCIIEncoding.Default.GetBytes (s);
+            Byte[] encoded_bytes = sha1.ComputeHash (bytes);
+            return BitConverter.ToString (encoded_bytes).ToLower ().Replace ("-", "");
         }
     }
 }

@@ -57,7 +57,7 @@ namespace SparkleShare {
 
                 foreach (SparkleRepoBase repo in Repositories) {
                     if (repo.Name.Equals (repo_name))
-                        repo.OnFileActivity (this, args);
+                        repo.OnFileActivity (args);
                 }
             };
         }
@@ -138,8 +138,11 @@ namespace SparkleShare {
 				StreamReader reader = new StreamReader (html_path);
 				string html = reader.ReadToEnd ();
 				reader.Close ();
-				
-				return html;
+
+                html = html.Replace ("<!-- $jquery-url -->", "file://" +
+                    Path.Combine (NSBundle.MainBundle.ResourcePath, "HTML", "jquery.js"));
+
+                return html;
 			}
 		}
 

@@ -18,36 +18,22 @@
 using System;
 using System.Text;
 using System.Threading;
+using System.Net.Sockets;
 using System.Security.Cryptography;
-
-using Meebey.SmartIrc4net;
 
 namespace SparkleLib {
 
-    public class SparkleListenerIrc : SparkleListenerBase {
+    public class SparkleListenerTcp : SparkleListenerBase {
 
         private Thread thread;
-        private IrcClient client;
-        private string nick;
+        private Socket socket;
 
-
-        public SparkleListenerIrc (Uri server, string folder_identifier) :
+        public SparkleListenerTcp (Uri server, string folder_identifier) :
             base (server, folder_identifier)
         {
-            // Try to get a uniqueish nickname
-            this.nick = SHA1 (DateTime.Now.ToString ("ffffff") + "sparkles");
-
-            // Most irc servers don't allow nicknames starting
-            // with a number, so prefix an alphabetic character
-            this.nick = "s" + this.nick.Substring (0, 7);
-
-            base.channels.Add ("#" + folder_identifier);
-
-            this.client = new IrcClient () {
-                PingTimeout  = 180,
-                PingInterval = 60
-            };
-
+            base.channels.Add (folder_identifier);
+            this.socket = new Socket (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+/*
             this.client.OnConnected += delegate {
                 base.is_connecting = false;
                 OnConnected ();
@@ -63,17 +49,18 @@ namespace SparkleLib {
                 OnDisconnected ();
             };
 
-            this.client.OnChannelMessage += delegate (object o, IrcEventArgs args) {
+            this..OnChannelMessage += delegate (object o, IrcEventArgs args) {
                 string message = args.Data.Message.Trim ();
                 string folder_id = args.Data.Channel.Substring (1); // remove the starting hash
                 OnAnnouncement (new SparkleAnnouncement (folder_id, message));
-            };
+            };*/
         }
 
 
         public override bool IsConnected {
             get {
-              return this.client.IsConnected;
+              //return this.client.IsConnected;
+              return true;
             }
         }
 
@@ -81,32 +68,47 @@ namespace SparkleLib {
         // Starts a new thread and listens to the channel
         public override void Connect ()
         {
-            SparkleHelpers.DebugInfo ("ListenerIrc", "Connecting to " + Server);
+            SparkleHelpers.DebugInfo ("ListenerTcp", "Connecting to " + Server.Host);
 
             base.is_connecting = true;
 
             this.thread = new Thread (
                 new ThreadStart (delegate {
                     try {
-                        // Connect, login, and join the channel
-                        int port = base.server.Port;
-                        if (port < 0) port = 6667;
-                        this.client.Connect (base.server.Host, port);
-                        this.client.Login (this.nick, this.nick);
+
+                        // Connect and subscribe to the channel
+                        int port = Server.Port;
+                        if (port < 0) port = 9999;
+                        this.socket.Connect (Server.Host, port);
+                        base.is_connecting = false;
 
                         foreach (string channel in base.channels) {
-                            SparkleHelpers.DebugInfo ("ListenerIrc", "Joining channel " + channel);
-                            this.client.RfcJoin (channel);
+                            SparkleHelpers.DebugInfo ("ListenerTcp", "Subscribing to channel " + channel);
+
+                            byte [] message = Encoding.UTF8.GetBytes (
+                                "{\"folder\": \"" + channel + "\", \"command\": \"subscribe\"}");
+                            this.socket.Send (message);
                         }
 
-                        // List to the channel, this blocks the thread
-                        this.client.Listen ();
+                        byte [] bytes = new byte [4096];
+
+                        // List to the channels, this blocks the thread
+                        while (this.socket.Connected) {
+                            this.socket.Receive (bytes);
+                            if (bytes != null && bytes.Length > 0) {
+                                Console.WriteLine (Encoding.UTF8.GetString (bytes));
+
+                                string received_message = bytes.ToString ().Trim ();
+                                string folder_id = ""; // TODO: parse message, use XML
+                                OnAnnouncement (new SparkleAnnouncement (folder_id, received_message));
+                            }
+                        }
 
                         // Disconnect when we time out
-                        this.client.Disconnect ();
+                        this.socket.Close ();
 
-                    } catch (ConnectionException e) {
-                        SparkleHelpers.DebugInfo ("ListenerIrc", "Could not connect to " + Server + ": " + e.Message);
+                    } catch (SocketException e) {
+                        SparkleHelpers.DebugInfo ("ListenerTcp", "Could not connect to " + Server + ": " + e.Message);
                     }
                 })
             );
@@ -117,13 +119,16 @@ namespace SparkleLib {
 
         public override void AlsoListenTo (string folder_identifier)
         {
-            string channel = "#" + folder_identifier;
+            string channel = folder_identifier;
             if (!base.channels.Contains (channel)) {
                 base.channels.Add (channel);
 
                 if (IsConnected) {
-                    SparkleHelpers.DebugInfo ("ListenerIrc", "Joining channel " + channel);
-                    this.client.RfcJoin (channel);
+                    SparkleHelpers.DebugInfo ("ListenerTcp", "Subscribing to channel " + channel);
+
+                    byte [] message = Encoding.UTF8.GetBytes (
+                        "{\"folder\": \"" + channel + "\", \"command\": \"subscribe\"}");
+                    this.socket.Send (message);
                 }
             }
         }
@@ -131,8 +136,10 @@ namespace SparkleLib {
 
         public override void Announce (SparkleAnnouncement announcement)
         {
-            string channel = "#" + announcement.FolderIdentifier;
-            this.client.SendMessage (SendType.Message, channel, announcement.Message);
+            string channel = announcement.FolderIdentifier;
+            byte [] message = Encoding.UTF8.GetBytes (
+               "{\"folder\": \"" + channel + "\", \"command\": \"publish\"}");
+            this.socket.Send (message);
 
             // Also announce to ourselves for debugging purposes
             // base.OnAnnouncement (announcement);
@@ -144,16 +151,6 @@ namespace SparkleLib {
             this.thread.Abort ();
             this.thread.Join ();
             base.Dispose ();
-        }
-
-
-        // Creates a SHA-1 hash of input
-        private string SHA1 (string s)
-        {
-            SHA1 sha1 = new SHA1CryptoServiceProvider ();
-            Byte[] bytes = ASCIIEncoding.Default.GetBytes (s);
-            Byte[] encoded_bytes = sha1.ComputeHash (bytes);
-            return BitConverter.ToString (encoded_bytes).ToLower ().Replace ("-", "");
         }
     }
 }
