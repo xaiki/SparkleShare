@@ -1,3 +1,14 @@
+sparkleshare (0.2.4-1) experimental; urgency=low
+
+  * [7aa8901] Imported Upstream version 0.2.4
+  * [584cf39] Remove 0001-Check-for-both-2.0-and-4.0-libs.patch, merged upstream.
+    Also no longer need to reautogen.
+  * [cf1e91c] Make sparkleshare arch:all.
+    Contains only managed code.
+  * [cb99676] Depend on git >= 1.7.1 per upstream
+
+ -- Iain Lane <laney@debian.org>  Sat, 16 Jul 2011 18:57:00 +0100
+
 sparkleshare (0.2.2-1) experimental; urgency=low
 
   * Initial upload to Debian, adapted from packages by Andrea Colangelo
