@@ -366,6 +366,26 @@ namespace SparkleShare {
 
             writer.WriteLine (json);
             writer.Close ();
+
+            json =
+            "{" + n +
+            "    \"folders\": [";
+
+            foreach (string folder in Folders) {
+            json += n +
+            "         \"name\": \"" + folder + "\",";
+            }
+
+            json = json.TrimEnd (",\n".ToCharArray ()) + n;
+            json +=
+            "    ]" + n +
+            "}" + n;
+
+            writer = new StreamWriter (
+                Path.Combine (SparklePaths.SparkleConfigPath, "folders.json"));
+
+            writer.WriteLine (json);
+            writer.Close ();
         }
 
 
