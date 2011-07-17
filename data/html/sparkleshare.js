@@ -1,16 +1,18 @@
 /*
-SparkleShare is teh awezome!
-Be sure to edit the CoffeeScript file; it generates the JavaScript.
 
-You can do so by running:
-  coffee -c --bare .
+  SparkleShare is teh awezome!
 
-If you'd like it to generate the JS file while you're editing, do this:
-  coffee -w -c --bare .
+  Be sure to edit the CoffeeScript file; it generates the JavaScript.
 
-You can test the event viewer in your browser by running:
-  python -m SimpleHTTPServer
-...and browsing to http://localhost:8000/events.html
+  You can generate the JavaScript from CoffeeScript by running:
+    coffee -c --bare .
+
+  You can generate the JS file automagically when you save by running this:
+    coffee -w -c --bare .
+
+  You can test the event viewer in your browser by running:
+    python -m SimpleHTTPServer
+  ...and browsing to http://localhost:8000/events.html
 
 */var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 (function($) {
