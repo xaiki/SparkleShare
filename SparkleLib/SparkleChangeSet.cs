@@ -169,7 +169,6 @@ namespace SparkleLib {
 
             json = json.TrimEnd (",".ToCharArray ()) + n;
             json +=
-            "        ]" + n +
             "    }" + n +
             "]" + n;
 
