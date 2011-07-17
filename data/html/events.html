@@ -1,0 +1,74 @@
+<!doctype html>
+<head>
+	<meta charset="UTF-8">
+	
+	<title>SparkleShare Event Log</title>
+  <link rel="stylesheet" href="sparkleshare.css" type="text/css">
+</head>
+<body>
+
+<div id="content">Loading...</div>
+
+
+  <!-- Load SparkleShare-provided jQuery -->
+  <script type="text/javascript" src="<!-- $jquery-url -->"></script>
+  <!-- Fallback to the local version for development in Chrome -->
+	<script>!window.jQuery && document.write(unescape('%3Cscript src="jquery.js"%3E%3C/script%3E'))</script>
+	
+	<script src="handlebars.js"></script>
+	<script src="sparkleshare.js"></script>
+	
+	<!-- TEMPLATES! -->
+	
+	<script id="changeset-template" type="text/x-handlebars-template">
+	
+	  {{#each changeSet}}
+	  <div class='event-entry' style='background-image: url("{{avatar}}");'>
+      <div class='event-user-name'>{{userName}}</div>
+      <div class='event-folder'>{{path}}</div>
+
+
+      {{#with changes}}
+      <dl>
+        {{#each added}}
+        <dl><dd class='document added'>+ {{path}}/{{name}}</dd>
+        {{/each}}
+
+        {{#each edited}}
+        <dl><dd class='document edited'>? {{path}}/{{name}}</dd>
+        {{/each}}
+
+        {{#each deleted}}
+        <dl><dd class='document deleted'>- {{path}}/{{name}}</dd>
+        {{/each}}
+      </dl>
+      {{/with}}
+
+      <div class="clearer"></div>
+      <div class="event-timestamp">{{timestamp}}</div>
+      <div class="action note">Add note</div>
+      <div class="action show">Show all</div>
+
+      <div class="clearer"></div>
+
+      {{#if notes}}
+      <div class="comments-section">
+          <div class="comments">
+            {{#each notes}}
+            {{/each}}
+          </div>
+          <textarea class="comment-textarea"></textarea>
+          <input class="comment-button" type="button" value="Add note"
+           id="{{revision}}">
+          <div style='clear: both'></div>
+      </div>
+      {{/if}}
+      
+      <div class="clearer"></div>
+    </div>
+    {{/each}}
+    
+	</script>
+
+</body>
+</html>
