@@ -282,6 +282,14 @@ namespace SparkleShare {
         
         public string GetHTMLLog (List<SparkleChangeSet> change_sets)
         {
+            return "";
+        }
+
+
+        public void UpdateJSON ()
+        {
+            List<SparkleChangeSet> change_sets = GetLog ();
+
             List <ActivityDay> activity_days = new List <ActivityDay> ();
             List<string> emails = new List<string> ();
 
@@ -289,7 +297,7 @@ namespace SparkleShare {
             change_sets.Reverse ();
 
             if (change_sets.Count == 0)
-                return null;
+                return;
 
             foreach (SparkleChangeSet change_set in change_sets) {
 
@@ -297,6 +305,7 @@ namespace SparkleShare {
                 if (!emails.Contains (change_set.UserEmail))
                     emails.Add (change_set.UserEmail);
 
+                // Sort change sets by day
                 bool change_set_inserted = false;
                 foreach (ActivityDay stored_activity_day in activity_days) {
                     if (stored_activity_day.Timestamp.Year  == change_set.Timestamp.Year &&
@@ -316,14 +325,21 @@ namespace SparkleShare {
                 }
             }
 
-            new Thread (new ThreadStart (delegate {
-                FetchAvatars (emails, 48);
-            })).Start ();
 
+            // Fetch gravatars with the emails we collected previously
+            Thread thread = new Thread (new ThreadStart (delegate {
+                FetchAvatars (emails, 48);
+            }));
+
+            thread.Start ();
+
+
+            // Create the JSON from the days and change sets
             string n = Environment.NewLine;
             string json =
             "{" + n +
-            "    \"lastUpdated\": \"" + (int) (DateTime.UtcNow - new DateTime (1970, 1, 1)).TotalSeconds  +"\"," + n;
+            "    \"lastUpdated\": \"" +
+            (int) (DateTime.UtcNow - new DateTime (1970, 1, 1)).TotalSeconds  +"\"," + n;
 
             foreach (ActivityDay activity_day in activity_days) {
                 json +=
@@ -331,9 +347,8 @@ namespace SparkleShare {
             "        {" + n +
             "            \"timestamp\": " + (int) (activity_day.Timestamp - new DateTime (1970, 1, 1)).TotalSeconds + "," + n;
 
-                foreach (SparkleChangeSet change_set in activity_day) {
+                foreach (SparkleChangeSet change_set in activity_day)
                     json += change_set.ToJSON () + ",";
-                }
 
                 json = json.TrimEnd (",".ToCharArray ()) + n;
                 json +=
@@ -345,13 +360,12 @@ namespace SparkleShare {
             json +=
             "}" + n;
 
+            // Write the JSON to a file
             StreamWriter writer = new StreamWriter (
                 Path.Combine (SparklePaths.SparkleConfigPath, "events.json"));
 
             writer.WriteLine (json);
             writer.Close ();
-
-            return json;
         }
 
 
