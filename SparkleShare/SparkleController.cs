@@ -343,7 +343,13 @@ namespace SparkleShare {
             json = json.TrimEnd (",".ToCharArray ()) + n;
             json +=
             "}" + n;
-            Console.WriteLine (json);
+
+            StreamWriter writer = new StreamWriter (
+                Path.Combine (SparklePaths.SparkleConfigPath, "events.json"));
+
+            writer.WriteLine (json);
+            writer.Close ();
+
             return json;
         }
 
