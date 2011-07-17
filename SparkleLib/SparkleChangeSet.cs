@@ -93,7 +93,7 @@ namespace SparkleLib {
             foreach (string added in Added) {
                 json += n +
             "                    {" + n +
-            "                        \"path\": \"" + added + "\"," + n +
+            "                        \"path\": \"" + Path.GetPathRoot (added) + "\"," + n +
             "                        \"name\": \"" + Path.GetFileName (added) + "\"" + n +
             "                    },";
             }
@@ -106,7 +106,7 @@ namespace SparkleLib {
             foreach (string edited in Edited) {
                 json += n +
             "                    {" + n +
-            "                        \"path\": \"" + edited + "\"," + n +
+            "                        \"path\": \"" + Path.GetPathRoot (edited) + "\"," + n +
             "                        \"name\": \"" + Path.GetFileName (edited) +  "\"" + n +
             "                    },";
             }
@@ -119,7 +119,7 @@ namespace SparkleLib {
             foreach (string deleted in Deleted) {
                 json += n +
             "                    {" + n +
-            "                        \"path\": \"" + deleted + "\"," + n +
+            "                        \"path\": \"" + Path.GetPathRoot (deleted) + "\"," + n +
             "                        \"name\": \"" + Path.GetFileName (deleted) + "\"" + n +
             "                    },";
             }
@@ -132,7 +132,7 @@ namespace SparkleLib {
             foreach (string moved_from in MovedFrom) {
                 json += n +
             "                    {" + n +
-            "                        \"path\": \"" + moved_from + "\"," + n +
+            "                        \"path\": \"" + Path.GetPathRoot (moved_from) + "\"," + n +
             "                        \"name\": \"" + Path.GetFileName (moved_from) + "\"" + n +
             "                    },";
             }
@@ -145,7 +145,7 @@ namespace SparkleLib {
             foreach (string moved_to in MovedTo) {
                 json += n +
             "                    {" + n +
-            "                        \"path\": \"" + moved_to + "\"," + n +
+            "                        \"path\": \"" + Path.GetPathRoot (moved_to) + "\"," + n +
             "                        \"name\": \"" + Path.GetFileName (moved_to) + "\"" + n +
             "                    },";
             }

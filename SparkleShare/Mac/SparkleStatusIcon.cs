@@ -224,13 +224,15 @@ namespace SparkleShare {
                     if (Controller.Folders.Length > 0) {
                         RecentEventsMenuItem.Activated += delegate {
                             InvokeOnMainThread (delegate {
-                                NSApplication.SharedApplication.ActivateIgnoringOtherApps (true);
-        
-                                if (SparkleUI.EventLog == null)
-                                    SparkleUI.EventLog = new SparkleEventLog ();
-        
-                                SparkleUI.EventLog.OrderFrontRegardless ();
-                                SparkleUI.EventLog.MakeKeyAndOrderFront (this);
+                                using (NSAutoreleasePool p = new NSAutoreleasePool ()) {
+                                    NSApplication.SharedApplication.ActivateIgnoringOtherApps (true);
+            
+                                    if (SparkleUI.EventLog == null)
+                                        SparkleUI.EventLog = new SparkleEventLog ();
+            
+                                    SparkleUI.EventLog.OrderFrontRegardless ();
+                                    SparkleUI.EventLog.MakeKeyAndOrderFront (this);
+                                }
                             });
                         };
                     }
