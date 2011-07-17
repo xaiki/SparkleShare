@@ -95,7 +95,7 @@ namespace SparkleLib {
             "                    {" + n +
             "                        \"path\": \"" + added + "\"," + n +
             "                        \"name\": \"" + Path.GetFileName (added) + "\"" + n +
-            "                    }," + n;
+            "                    },";
             }
 
             json = json.TrimEnd (",".ToCharArray ()) + n;
