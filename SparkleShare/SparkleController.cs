@@ -412,6 +412,8 @@ namespace SparkleShare {
             if (OnIdle != null)
                 OnIdle ();
 
+            UpdateJSON ();
+
             FolderSize = GetFolderSize ();
 
             if (FolderSizeChanged != null)
