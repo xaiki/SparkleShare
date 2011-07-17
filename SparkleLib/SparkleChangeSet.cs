@@ -82,7 +82,7 @@ namespace SparkleLib {
             "    {" + n +
             "        \"userName\": \"" + UserName + "\"," + n +
             "        \"userEmail\": \"" + UserEmail + "\"," + n +
-            "        \"timestamp\": " + (Timestamp - new DateTime (1970, 1, 1)).TotalSeconds + "," + n +
+            "        \"timestamp\": " + (int) (Timestamp - new DateTime (1970, 1, 1)).TotalSeconds + "," + n +
             "        \"path\": \"" + SparklePaths.SparklePath + "\"," + n +
             "        \"folder\": \"" + Folder + "\"," + n +
             "        \"revision\": \"" + Revision + "\"," + n +
@@ -162,7 +162,7 @@ namespace SparkleLib {
             "            {" + n +
             "                \"userName\": \"" + note.UserName + "\"," + n +
             "                \"userEmail\": \"" + note.UserEmail + "\"," + n +
-            "                \"timestamp\": " + (note.Timestamp - new DateTime (1970, 1, 1)).TotalSeconds + "," + n +
+            "                \"timestamp\": " + (int) (note.Timestamp - new DateTime (1970, 1, 1)).TotalSeconds + "," + n +
             "                \"body\": \"" + note.Body + "\"" + n +
             "            },";
             }
