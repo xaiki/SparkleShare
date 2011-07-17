@@ -1,8 +1,8 @@
 <!doctype html>
 <head>
-	<meta charset="UTF-8">
-	
-	<title>SparkleShare Event Log</title>
+  <meta charset="UTF-8">
+
+  <title>SparkleShare Event Log</title>
   <link rel="stylesheet" href="sparkleshare.css" type="text/css">
 </head>
 <body>
@@ -13,17 +13,29 @@
   <!-- Load SparkleShare-provided jQuery -->
   <script type="text/javascript" src="<!-- $jquery-url -->"></script>
   <!-- Fallback to the local version for development in Chrome -->
-	<script>!window.jQuery && document.write(unescape('%3Cscript src="jquery.js"%3E%3C/script%3E'))</script>
-	
-	<script src="handlebars.js"></script>
-	<script src="sparkleshare.js"></script>
-	
-	<!-- TEMPLATES! -->
-	
-	<script id="changeset-template" type="text/x-handlebars-template">
-	
-	  {{#each changeSet}}
-	  <div class='event-entry' style='background-image: url("{{avatar}}");'>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="jquery.js"%3E%3C/script%3E'))</script>
+
+  <script src="handlebars.js"></script>
+  <script src="sparkleshare.js"></script>
+
+  <!-- GLOBALS! -->
+  <script>
+    SPARKLE = {
+      basePath: "PATH HERE",
+      repos: [
+        "repo1",
+        "repo2",
+        "repo3"
+      ]
+    };
+  </script>
+
+  <!-- TEMPLATES! -->
+
+  <script id="changeset-template" type="text/x-handlebars-template">
+
+    {{#each changeSet}}
+    <div class='event-entry' style='background-image: url("{{avatar}}");'>
       <div class='event-user-name'>{{userName}}</div>
       <div class='event-folder'>{{path}}</div>
 
@@ -63,12 +75,12 @@
           <div style='clear: both'></div>
       </div>
       {{/if}}
-      
+
       <div class="clearer"></div>
     </div>
     {{/each}}
-    
-	</script>
+
+  </script>
 
 </body>
 </html>
