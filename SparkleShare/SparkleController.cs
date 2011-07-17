@@ -299,9 +299,9 @@ namespace SparkleShare {
 
                 bool change_set_inserted = false;
                 foreach (ActivityDay stored_activity_day in activity_days) {
-                    if (stored_activity_day.DateTime.Year  == change_set.Timestamp.Year &&
-                        stored_activity_day.DateTime.Month == change_set.Timestamp.Month &&
-                        stored_activity_day.DateTime.Day   == change_set.Timestamp.Day) {
+                    if (stored_activity_day.Timestamp.Year  == change_set.Timestamp.Year &&
+                        stored_activity_day.Timestamp.Month == change_set.Timestamp.Month &&
+                        stored_activity_day.Timestamp.Day   == change_set.Timestamp.Day) {
 
                         stored_activity_day.Add (change_set);
                         change_set_inserted = true;
@@ -328,7 +328,8 @@ namespace SparkleShare {
             foreach (ActivityDay activity_day in activity_days) {
                 json +=
             "    \"activityDay\": [" + n +
-            "        {" + n;
+            "        {" + n +
+            "            \"timestamp\": " + (int) (activity_day.Timestamp - new DateTime (1970, 1, 1)).TotalSeconds + "," + n;
 
                 foreach (SparkleChangeSet change_set in activity_day) {
                     json += change_set.ToJSON () + ",";
@@ -977,12 +978,11 @@ namespace SparkleShare {
     // All change sets that happened on a day
     public class ActivityDay : List <SparkleChangeSet>
     {
-        public DateTime DateTime;
+        public DateTime Timestamp;
 
-        public ActivityDay (DateTime date_time)
+        public ActivityDay (DateTime timestamp)
         {
-            DateTime = date_time;
-            DateTime = new DateTime (DateTime.Year, DateTime.Month, DateTime.Day);
+            Timestamp = new DateTime (timestamp.Year, timestamp.Month, timestamp.Day);
         }
     }
 }
