@@ -16,6 +16,7 @@
 
 
 using System;
+using System.IO;
 using System.Collections.Generic;
 
 namespace SparkleLib {
@@ -70,6 +71,110 @@ namespace SparkleLib {
                     : "a year ago";
            }
        }
+
+
+       public string ToJSON ()
+       {
+            string n = Environment.NewLine;
+
+            string json =
+            "\"changeSet\": [" + n +
+            "    {" + n +
+            "        \"userName\": \"" + UserName + "\"," + n +
+            "        \"userEmail\": \"" + UserEmail + "\"," + n +
+            "        \"timestamp\": " + (Timestamp - new DateTime (1970, 1, 1)).TotalSeconds + "," + n +
+            "        \"path\": \"" + SparklePaths.SparklePath + "\"," + n +
+            "        \"folder\": \"" + Folder + "\"," + n +
+            "        \"revision\": \"" + Revision + "\"," + n +
+            "        \"changes\": [" + n +
+            "            {" + n +
+            "                \"added\": [";
+
+            foreach (string added in Added) {
+                json += n +
+            "                    {" + n +
+            "                        \"path\": \"" + added + "\"," + n +
+            "                        \"name\": \"" + Path.GetFileName (added) + "\"" + n +
+            "                    }," + n;
+            }
+
+            json = json.TrimEnd (",".ToCharArray ()) + n;
+            json +=
+            "                ]," + n +
+            "                \"edited\": [";
+
+            foreach (string edited in Edited) {
+                json += n +
+            "                    {" + n +
+            "                        \"path\": \"" + edited + "\"," + n +
+            "                        \"name\": \"" + Path.GetFileName (edited) +  "\"" + n +
+            "                    },";
+            }
+
+            json = json.TrimEnd (",".ToCharArray ()) + n;
+            json +=
+            "                ]," + n +
+            "                \"deleted\": [";
+
+            foreach (string deleted in Deleted) {
+                json += n +
+            "                    {" + n +
+            "                        \"path\": \"" + deleted + "\"," + n +
+            "                        \"name\": \"" + Path.GetFileName (deleted) + "\"" + n +
+            "                    },";
+            }
+
+            json = json.TrimEnd (",".ToCharArray ()) + n;
+            json +=
+            "                ]," + n +
+            "                \"movedFrom\": [";
+
+            foreach (string moved_from in MovedFrom) {
+                json += n +
+            "                    {" + n +
+            "                        \"path\": \"" + moved_from + "\"," + n +
+            "                        \"name\": \"" + Path.GetFileName (moved_from) + "\"" + n +
+            "                    },";
+            }
+
+            json = json.TrimEnd (",".ToCharArray ()) + n;
+            json +=
+            "                ]," + n +
+            "                \"movedTo\": [";
+
+            foreach (string moved_to in MovedTo) {
+                json += n +
+            "                    {" + n +
+            "                        \"path\": \"" + moved_to + "\"," + n +
+            "                        \"name\": \"" + Path.GetFileName (moved_to) + "\"" + n +
+            "                    },";
+            }
+
+            json = json.TrimEnd (",".ToCharArray ()) + n;
+            json +=
+            "                ]" + n +
+            "            }" + n +
+            "        ]," + n +
+            "        \"notes\": [";
+
+            foreach (SparkleNote note in Notes) {
+                json += n +
+            "            {" + n +
+            "                \"userName\": \"" + note.UserName + "\"," + n +
+            "                \"userEmail\": \"" + note.UserEmail + "\"," + n +
+            "                \"timestamp\": " + (note.Timestamp - new DateTime (1970, 1, 1)).TotalSeconds + "," + n +
+            "                \"body\": \"" + note.Body + "\"" + n +
+            "            },";
+            }
+
+            json = json.TrimEnd (",".ToCharArray ()) + n;
+            json +=
+            "        ]" + n +
+            "    }" + n +
+            "]" + n;
+
+            return json;
+        }
    }
 
 
