@@ -39,7 +39,7 @@
 
     render: ->
       _compileTemplate = =>
-        template = Handlebars.compile $('#changeset-template').html()        
+        template = Handlebars.compile $('#changeset-template').html()
         $('#content').html template @changes
 
       ### 
