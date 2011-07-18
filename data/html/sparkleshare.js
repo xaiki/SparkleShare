@@ -38,22 +38,11 @@
       return "spec.json";
     };
     ChangeSet.prototype.render = function() {
-      var _compileTemplate, _ref;
-      _compileTemplate = __bind(function() {
+      return this.ajax.success(__bind(function() {
         var template;
         template = Handlebars.compile($('#changeset-template').html());
         return $('#content').html(template(this.changes));
-      }, this);
-      /* 
-      * Either template it now, or when a pending ajax request finishes
-      */
-      if ((_ref = this.ajax) != null ? _ref.readyState : void 0) {
-        return this.ajax.complete(function() {
-          return _compileTemplate();
-        });
-      } else {
-        return _compileTemplate();
-      }
+      }, this));
     };
     return ChangeSet;
   })();

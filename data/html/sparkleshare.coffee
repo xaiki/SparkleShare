@@ -27,7 +27,7 @@
     @ajax
     @changes = {}
     @repo
-    
+
     constructor: (@repo = 'all') ->
       @update()
 
@@ -38,17 +38,9 @@
       "spec.json"
 
     render: ->
-      _compileTemplate = =>
+      @ajax.success =>
         template = Handlebars.compile $('#changeset-template').html()
         $('#content').html template @changes
-
-      ### 
-      * Either template it now, or when a pending ajax request finishes
-      ###
-      if @ajax?.readyState
-        @ajax.complete -> _compileTemplate()
-      else
-        _compileTemplate()
 
 
   changes = new ChangeSet
