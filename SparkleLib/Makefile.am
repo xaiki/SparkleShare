@@ -11,10 +11,6 @@ SOURCES =  \
 	Defines.cs \
 	Git/SparkleFetcherGit.cs \
 	Git/SparkleRepoGit.cs \
-	Hg/SparkleFetcherHg.cs \
-	Hg/SparkleRepoHg.cs \
-	Scp/SparkleFetcherScp.cs \
-	Scp/SparkleRepoScp.cs \
 	SparkleBackend.cs \
 	SparkleChangeSet.cs \
 	SparkleConfig.cs \
@@ -22,9 +18,8 @@ SOURCES =  \
 	SparkleHelpers.cs \
 	SparkleListenerBase.cs \
 	SparkleListenerIrc.cs \
-        SparkleListenerTcp.cs \
+	SparkleListenerTcp.cs \
 	SparkleOptions.cs \
-	SparklePaths.cs \
 	SparkleRepoBase.cs \
 	SparkleWatcher.cs
 

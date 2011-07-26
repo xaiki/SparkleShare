@@ -74,7 +74,6 @@ AM_RECURSIVE_TARGETS = $(RECURSIVE_TARGETS:-recursive=) \
 	distdir dist dist-all distcheck
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = $(SUBDIRS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -150,6 +149,7 @@ GTKSHARP_A11Y_CFLAGS = @GTKSHARP_A11Y_CFLAGS@
 GTKSHARP_A11Y_LIBS = @GTKSHARP_A11Y_LIBS@
 GTKSHARP_CFLAGS = @GTKSHARP_CFLAGS@
 GTKSHARP_LIBS = @GTKSHARP_LIBS@
+GUISUBDIRS = @GUISUBDIRS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -258,15 +258,9 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = \
-	build	\
-	help	\
-	SmartIrc4net \
-	SparkleLib \
-	SparkleShare \
-	data \
-	po
-
+basedirs = build help SmartIrc4net SparkleLib data po
+SUBDIRS = $(basedirs) $(GUISUBDIRS)
+DIST_SUBDIRS = $(basedirs) SparkleShare
 EXTRA_DIST = \
 	gnome-doc-utils.make \
 	LICENSE

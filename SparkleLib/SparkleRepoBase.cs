@@ -18,6 +18,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Timers;
 using System.Xml;
@@ -65,8 +67,11 @@ namespace SparkleLib {
         public delegate void SyncStatusChangedEventHandler (SyncStatus new_status);
         public event SyncStatusChangedEventHandler SyncStatusChanged;
 
-        public delegate void NewChangeSetEventHandler (SparkleChangeSet change_set, string source_path);
+        public delegate void NewChangeSetEventHandler (SparkleChangeSet change_set);
         public event NewChangeSetEventHandler NewChangeSet;
+
+        public delegate void NewNoteEventHandler (string user_name, string user_email);
+        public event NewNoteEventHandler NewNote;
 
         public delegate void ConflictResolvedEventHandler ();
         public event ConflictResolvedEventHandler ConflictResolved;
@@ -109,10 +114,8 @@ namespace SparkleLib {
 
                 // In the unlikely case that we haven't synced up our
                 // changes or the server was down, sync up again
-                if (HasUnsyncedChanges) {
+                if (HasUnsyncedChanges)
                     SyncUpBase ();
-                    SyncUpNotes ();
-                }
             };
 
             // Sync up everything that changed
@@ -141,6 +144,13 @@ namespace SparkleLib {
         public SyncStatus Status {
             get {
                 return this.status;
+            }
+        }
+
+
+        public virtual string [] UnsyncedFilePaths {
+            get {
+                return new string [0];
             }
         }
 
@@ -232,10 +242,8 @@ namespace SparkleLib {
                     SyncDownBase ();
 
                 // Push changes that were made since the last disconnect
-                if (HasUnsyncedChanges) {
+                if (HasUnsyncedChanges)
                     SyncUpBase ();
-                    SyncUpNotes ();
-                }
             };
 
             // Start polling when the connection to the irc channel is lost
@@ -277,7 +285,8 @@ namespace SparkleLib {
                     DirectoryInfo dir_info = new DirectoryInfo (LocalPath);
                      this.sizebuffer.Add (CalculateFolderSize (dir_info));
 
-                    if (this.sizebuffer [0].Equals (this.sizebuffer [1]) &&
+                    if (this.sizebuffer.Count >= 4 &&
+                        this.sizebuffer [0].Equals (this.sizebuffer [1]) &&
                         this.sizebuffer [1].Equals (this.sizebuffer [2]) &&
                         this.sizebuffer [2].Equals (this.sizebuffer [3])) {
 
@@ -303,13 +312,18 @@ namespace SparkleLib {
             if (!this.watcher.EnableRaisingEvents)
                 return;
 
-            if (args.FullPath.Contains (Path.DirectorySeparatorChar + "."))
+            if (args.FullPath.Contains (Path.DirectorySeparatorChar + ".") &&
+                !args.FullPath.Contains (Path.DirectorySeparatorChar + ".notes"))
                 return;
 
             WatcherChangeTypes wct = args.ChangeType;
 
             if (AnyDifferences) {
                 this.is_buffering = true;
+
+                // We want to disable wathcing temporarily, but
+                // not stop the local timer
+                this.watcher.EnableRaisingEvents = false;
 
                 // Only fire the event if the timer has been stopped.
                 // This prevents multiple events from being raised whilst "buffering".
@@ -320,13 +334,49 @@ namespace SparkleLib {
 
                 SparkleHelpers.DebugInfo ("Event", "[" + Name + "] " + wct.ToString () + " '" + args.Name + "'");
                 SparkleHelpers.DebugInfo ("Event", "[" + Name + "] Changes found, checking if settled.");
-                
+
                 this.remote_timer.Stop ();
 
                 lock (this.change_lock) {
                     this.has_changed = true;
                 }
             }
+        }
+
+
+        public List<SparkleNote> GetNotes (string revision) {
+            List<SparkleNote> notes = new List<SparkleNote> ();
+
+            string notes_path = Path.Combine (LocalPath, ".notes");
+
+            if (!Directory.Exists (notes_path))
+                Directory.CreateDirectory (notes_path);
+
+            Regex regex_notes = new Regex (@"<name>(.+)</name>.*" +
+                                "<email>(.+)</email>.*" +
+                                "<timestamp>([0-9]+)</timestamp>.*" +
+                                "<body>(.+)</body>", RegexOptions.Compiled);
+
+            foreach (string file_path in Directory.GetFiles (notes_path)) {
+                if (Path.GetFileName (file_path).StartsWith (revision)) {
+                    string note_xml = String.Join ("", File.ReadAllLines (file_path));
+
+                    Match match_notes = regex_notes.Match (note_xml);
+
+                    if (match_notes.Success) {
+                        SparkleNote note = new SparkleNote () {
+                            User = new SparkleUser (match_notes.Groups [1].Value,
+                                match_notes.Groups [2].Value),
+                            Timestamp = new DateTime (1970, 1, 1).AddSeconds (int.Parse (match_notes.Groups [3].Value)),
+                            Body      = match_notes.Groups [4].Value
+                        };
+
+                        notes.Add (note);
+                    }
+                }
+            }
+
+            return notes;
         }
 
 
@@ -394,13 +444,27 @@ namespace SparkleLib {
                 if (SyncStatusChanged != null)
                     SyncStatusChanged (SyncStatus.Idle);
 
-                SparkleChangeSet change_set = GetChangeSets (1) [0];    
-                if (NewChangeSet != null && change_set.Revision != CurrentRevision)
-                    NewChangeSet (change_set, LocalPath);
+                SparkleChangeSet change_set = GetChangeSets (1) [0];
 
-                // There could be changes from a
-                // resolved conflict. Tries only once,
-                //then let the timer try again periodicallly
+                bool note_added = false;
+                foreach (string added in change_set.Added) {
+                    if (added.Contains (".notes")) {
+                        if (NewNote != null)
+                            NewNote (change_set.User.Name, change_set.User.Email);
+
+                        note_added = true;
+                        break;
+                    }
+                }
+
+                if (!note_added) {
+                    if (NewChangeSet != null)
+                        NewChangeSet (change_set);
+                }
+
+                // There could be changes from a resolved
+                // conflict. Tries only once, then lets
+                // the timer try again periodically
                 if (HasUnsyncedChanges)
                     SyncUp ();
 
@@ -445,15 +509,41 @@ namespace SparkleLib {
         }
 
 
-        public virtual void AddNote (string revision, string note)
+        public void AddNote (string revision, string note)
         {
+            string notes_path = Path.Combine (LocalPath, ".notes");
 
-        }
+            if (!Directory.Exists (notes_path))
+                Directory.CreateDirectory (notes_path);
+
+            // Add a timestamp in seconds since unix epoch
+            int timestamp = (int) (DateTime.UtcNow - new DateTime (1970, 1, 1)).TotalSeconds;
+
+            string n = Environment.NewLine;
+            note     = "<note>" + n +
+                       "  <user>" +  n +
+                       "    <name>" + SparkleConfig.DefaultConfig.User.Name + "</name>" + n +
+                       "    <email>" + SparkleConfig.DefaultConfig.User.Email + "</email>" + n +
+                       "  </user>" + n +
+                       "  <timestamp>" + timestamp + "</timestamp>" + n +
+                       "  <body>" + note + "</body>" + n +
+                       "</note>" + n;
+
+            string note_name = revision + SHA1 (timestamp.ToString () + note);
+            string note_path = Path.Combine (notes_path, note_name);
+
+            StreamWriter writer = new StreamWriter (note_path);
+            writer.Write (note);
+            writer.Close ();
 
 
-        public virtual void SyncUpNotes ()
-        {
+            // The watcher doesn't like .*/ so we need to trigger
+            // a change manually
+            FileSystemEventArgs args = new FileSystemEventArgs (WatcherChangeTypes.Changed,
+                notes_path, note_name);
 
+            OnFileActivity (args);
+            SparkleHelpers.DebugInfo ("Note", "Added note to " + revision);
         }
 
 
@@ -481,6 +571,16 @@ namespace SparkleLib {
                 size += CalculateFolderSize (directory);
 
             return size;
+        }
+
+
+        // Creates a SHA-1 hash of input
+        private string SHA1 (string s)
+        {
+            SHA1 sha1 = new SHA1CryptoServiceProvider ();
+            Byte[] bytes = ASCIIEncoding.Default.GetBytes (s);
+            Byte[] encoded_bytes = sha1.ComputeHash (bytes);
+            return BitConverter.ToString (encoded_bytes).ToLower ().Replace ("-", "");
         }
     }
 }
