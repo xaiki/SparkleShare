@@ -1,3 +1,17 @@
+sparkleshare (0.2.5-1) experimental; urgency=low
+
+  * [f320fef] Imported Upstream version 0.2.5
+    + Reimplement notes to be less buggy and backend independent. Polish
+      about dialog and event log html. Fix a bug where large collections of
+      files weren't being synced when adding them at the same time. The
+      event log now collapses huge change sets and squashes events together
+      by day when they are on the same day and in the same folder.
+  * [8f862d6] Require mono 2.10 and cli-common-dev 0.8.
+    New upstream release uses some CLR 4.0 APIs and so we need to bump the
+    BDs
+
+ -- Iain Lane <laney@debian.org>  Tue, 26 Jul 2011 09:32:28 +0100
+
 sparkleshare (0.2.4-1) experimental; urgency=low
 
   * [7aa8901] Imported Upstream version 0.2.4
