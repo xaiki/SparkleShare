@@ -158,6 +158,7 @@ GTKSHARP_A11Y_CFLAGS = @GTKSHARP_A11Y_CFLAGS@
 GTKSHARP_A11Y_LIBS = @GTKSHARP_A11Y_LIBS@
 GTKSHARP_CFLAGS = @GTKSHARP_CFLAGS@
 GTKSHARP_LIBS = @GTKSHARP_LIBS@
+GUISUBDIRS = @GUISUBDIRS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -271,9 +272,8 @@ SUBDIRS = \
 	html
 
 dist_pixmaps_DATA = \
-	sparkleshare-gnome.svg \
-	sparkleshare-mist.svg \
-	side-splash.png
+	side-splash.png \
+	about.png
 
 pixmapsdir = $(pkgdatadir)/pixmaps/
 MAINTAINERCLEANFILES = \
