@@ -168,6 +168,7 @@ GTKSHARP_A11Y_CFLAGS = @GTKSHARP_A11Y_CFLAGS@
 GTKSHARP_A11Y_LIBS = @GTKSHARP_A11Y_LIBS@
 GTKSHARP_CFLAGS = @GTKSHARP_CFLAGS@
 GTKSHARP_LIBS = @GTKSHARP_LIBS@
+GUISUBDIRS = @GUISUBDIRS@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -287,19 +288,23 @@ LINK = $(REF_SPARKLESHARE) $(NOTIFY_SHARP_LIBS) $(WEBKIT_SHARP_LIBS) \
 @HAVE_APP_INDICATOR_TRUE@BUILD_DEFINES = "-define:HAVE_APP_INDICATOR"
 SOURCES = \
 	SparkleAbout.cs \
-	SparkleBubble.cs \
+	SparkleAboutController.cs \
+	SparkleBubbles.cs \
+	SparkleBubblesController.cs \
 	SparkleController.cs \
 	SparkleEntry.cs \
-	SparkleInfobar.cs \
-	SparkleIntro.cs \
-	SparkleLinController.cs \
 	SparkleEventLog.cs \
+	SparkleEventLogController.cs \
+	SparkleLinController.cs \
+	SparkleSetup.cs \
+	SparkleSetupController.cs \
+	SparkleSetupWindow.cs \
 	SparkleShare.cs \
 	SparkleSpinner.cs \
 	SparkleStatusIcon.cs \
+	SparkleStatusIconController.cs \
 	SparkleUI.cs \
-	SparkleUIHelpers.cs \
-	SparkleWindow.cs
+	SparkleUIHelpers.cs
 
 
 # Initializers
@@ -880,6 +885,22 @@ uninstall-man: uninstall-man1
 	uninstall-binSCRIPTS uninstall-dist_ApplicationsDATA \
 	uninstall-man uninstall-man1 uninstall-moduleSCRIPTS
 
+	SparkleBubbles.cs \
+	SparkleBubblesController.cs \
+	SparkleController.cs \
+	SparkleEntry.cs \
+	SparkleEventLog.cs \
+	SparkleEventLogController.cs \
+	SparkleLinController.cs \
+	SparkleSetup.cs \
+	SparkleSetupController.cs \
+	SparkleSetupWindow.cs \
+	SparkleShare.cs \
+	SparkleSpinner.cs \
+	SparkleStatusIcon.cs \
+	SparkleStatusIconController.cs \
+	SparkleUI.cs \
+	SparkleUIHelpers.cs
 
 all: $(ASSEMBLY_FILE)
 
