@@ -1,3 +1,14 @@
+sparkleshare (0.2.5-2) experimental; urgency=low
+
+  * [c19513a] New patch to use SparkleHelpers method instead of 4.0 only
+    library one. This restores compatibility with older Mono versions.
+  * [173ef62] Rename patch to
+    0001-Add-missing-shebang-to-nautilus-extension.patch.
+  * [47aa816] Relax mono and cli-common versioned BDs now that we don't need
+    them any more
+
+ -- Iain Lane <laney@debian.org>  Thu, 28 Jul 2011 11:02:32 +0100
+
 sparkleshare (0.2.5-1ubuntu1) oneiric; urgency=low
 
   * Merge with Debian experimental, remaining changes:
