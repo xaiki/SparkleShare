@@ -1,3 +1,13 @@
+sparkleshare (0.2.5-2ubuntu1) oneiric; urgency=low
+
+  * Merge with Debian experimental, remaining changes:
+    + [3c55d25] Add gbp.conf for Ubuntu branch.  Ubuntu sources are stored as
+      a branch in Debian's git repository. Please try to use this if possible
+      (contact the Debian maintainers for merges).
+    + [a25c5e9] Add BD on libappindicator# to enable app indicator support
+
+ -- Iain Lane <laney@debian.org>  Thu, 28 Jul 2011 11:24:06 +0100
+
 sparkleshare (0.2.5-2) experimental; urgency=low
 
   * [c19513a] New patch to use SparkleHelpers method instead of 4.0 only
