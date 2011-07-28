@@ -1,0 +1,324 @@
+From: Iain Lane <laney@debian.org>
+Date: Thu, 28 Jul 2011 10:49:20 +0100
+Subject: Use SparkleHelpers method instead of 4.0 only library one
+
+This removes the dependency on Mono >= 2.8, and means that we can be
+installed on unstable and also backported.
+---
+ SparkleShare/SparkleAbout.cs         |    3 ++-
+ SparkleShare/SparkleController.cs    |   30 +++++++++++++++---------------
+ SparkleShare/SparkleEventLog.cs      |   11 ++++++-----
+ SparkleShare/SparkleLinController.cs |   21 +++++++++++----------
+ SparkleShare/SparkleUI.cs            |    2 +-
+ 5 files changed, 35 insertions(+), 32 deletions(-)
+
+Index: sparkleshare/SparkleShare/SparkleAbout.cs
+===================================================================
+--- sparkleshare.orig/SparkleShare/SparkleAbout.cs	2011-07-28 11:10:52.916181580 +0100
++++ sparkleshare/SparkleShare/SparkleAbout.cs	2011-07-28 11:12:23.764645340 +0100
+@@ -19,6 +19,7 @@
+ using System.Diagnostics;
+ using System.IO;
+ using System.Net;
++using SparkleLib;
+ 
+ using Gtk;
+ using Mono.Unix;
+@@ -53,7 +54,7 @@
+             Title          = _("About SparkleShare");
+             AppPaintable   = true;
+ 
+-            string image_path = System.IO.Path.Combine (SparkleUI.AssetsPath,
++            string image_path = SparkleHelpers.CombineMore (SparkleUI.AssetsPath,
+                  "pixmaps", "about.png");
+ 
+             Realize ();
+Index: sparkleshare/SparkleShare/SparkleController.cs
+===================================================================
+--- sparkleshare.orig/SparkleShare/SparkleController.cs	2011-07-28 11:10:52.936180801 +0100
++++ sparkleshare/SparkleShare/SparkleController.cs	2011-07-28 11:12:23.764645340 +0100
+@@ -246,7 +246,7 @@
+             if (name == null)
+                 return GetLog ();
+ 
+-            string path = Path.Combine (SparkleConfig.DefaultConfig.FoldersPath, name);
++            string path = SparkleHelpers.CombineMore (SparkleConfig.DefaultConfig.FoldersPath, name);
+             int log_size = 50;
+             
+             foreach (SparkleRepoBase repo in Repositories) {
+@@ -350,7 +350,7 @@
+                     } else {
+                         if (change_set.Edited.Count > 0) {
+                             foreach (string file_path in change_set.Edited) {
+-                                string absolute_file_path = Path.Combine (
++                                string absolute_file_path = SparkleHelpers.CombineMore (
+                                     SparkleConfig.DefaultConfig.FoldersPath, change_set.Folder, file_path);
+                                 
+                                 if (File.Exists (absolute_file_path))
+@@ -362,7 +362,7 @@
+     
+                         if (change_set.Added.Count > 0) {
+                             foreach (string file_path in change_set.Added) {
+-                                string absolute_file_path = Path.Combine (
++                                string absolute_file_path = SparkleHelpers.CombineMore (
+                                     SparkleConfig.DefaultConfig.FoldersPath, change_set.Folder, file_path);
+                                 
+                                 if (File.Exists (absolute_file_path))
+@@ -374,7 +374,7 @@
+     
+                         if (change_set.Deleted.Count > 0) {
+                             foreach (string file_path in change_set.Deleted) {
+-                                string absolute_file_path = Path.Combine (
++                                string absolute_file_path = SparkleHelpers.CombineMore (
+                                     SparkleConfig.DefaultConfig.FoldersPath, change_set.Folder, file_path);
+                                 
+                                 if (File.Exists (absolute_file_path))
+@@ -388,9 +388,9 @@
+                             int i = 0;
+                             foreach (string file_path in change_set.MovedFrom) {
+                                 string to_file_path = change_set.MovedTo [i];
+-                                string absolute_file_path = Path.Combine (
++                                string absolute_file_path = SparkleHelpers.CombineMore (
+                                     SparkleConfig.DefaultConfig.FoldersPath, change_set.Folder, file_path);
+-                                string absolute_to_file_path = Path.Combine (
++                                string absolute_to_file_path = SparkleHelpers.CombineMore (
+                                     SparkleConfig.DefaultConfig.FoldersPath, change_set.Folder, file_path);
+ 
+                                 if (File.Exists (absolute_file_path))
+@@ -803,7 +803,7 @@
+             process.StartInfo.RedirectStandardOutput = true;
+             process.StartInfo.UseShellExecute        = false;
+             process.StartInfo.FileName               = "ssh-add";
+-            process.StartInfo.Arguments              = "\"" + Path.Combine (keys_path, key_file_name) + "\"";
++            process.StartInfo.Arguments              = "\"" + SparkleHelpers.CombineMore (keys_path, key_file_name) + "\"";
+             process.Start ();
+             process.WaitForExit ();
+         }
+@@ -847,7 +847,7 @@
+         {
+             string keys_path     = Path.GetDirectoryName (SparkleConfig.DefaultConfig.FullPath);
+             string key_file_name = "sparkleshare." + UserEmail + ".key";
+-            string key_file_path = Path.Combine (keys_path, key_file_name);
++            string key_file_path = SparkleHelpers.CombineMore (keys_path, key_file_name);
+ 
+             if (File.Exists (key_file_path)) {
+                 SparkleHelpers.DebugInfo ("Config", "Key already exists ('" + key_file_name + "'), " +
+@@ -880,7 +880,7 @@
+                     // Create an easily accessible copy of the public
+                     // key in the user's SparkleShare folder
+                     File.Copy (key_file_path + ".pub",
+-                        Path.Combine (SparklePath, UserName + "'s key.txt"));
++                        SparkleHelpers.CombineMore (SparklePath, UserName + "'s key.txt"));
+                 };
+                 
+                 process.Start ();
+@@ -894,7 +894,7 @@
+         {
+             List<string> old_avatars = new List<string> ();
+             bool avatar_fetched      = false;
+-            string avatar_path       = Path.Combine (
++            string avatar_path       = SparkleHelpers.CombineMore (
+                 Path.GetDirectoryName (SparkleConfig.DefaultConfig.FullPath), "icons",
+                 size + "x" + size, "status");
+ 
+@@ -904,7 +904,7 @@
+             }
+ 
+             foreach (string email in emails) {
+-                string avatar_file_path = Path.Combine (avatar_path, "avatar-" + email);
++                string avatar_file_path = SparkleHelpers.CombineMore (avatar_path, "avatar-" + email);
+ 
+                 if (File.Exists (avatar_file_path)) {
+                     FileInfo avatar_info = new FileInfo (avatar_file_path);
+@@ -973,7 +973,7 @@
+ 
+             // Strip the '.git' from the name
+             string canonical_name = Path.GetFileNameWithoutExtension (remote_folder);
+-            string tmp_folder     = Path.Combine (tmp_path, canonical_name);
++            string tmp_folder     = SparkleHelpers.CombineMore (tmp_path, canonical_name);
+ 
+             SparkleFetcherBase fetcher = null;
+             string backend = null;
+@@ -994,7 +994,7 @@
+             //}
+ 
+             bool target_folder_exists = Directory.Exists (
+-                Path.Combine (SparkleConfig.DefaultConfig.FoldersPath, canonical_name));
++                SparkleHelpers.CombineMore (SparkleConfig.DefaultConfig.FoldersPath, canonical_name));
+ 
+             // Add a numbered suffix to the nameif a folder with the same name
+             // already exists. Example: "Folder (2)"
+@@ -1002,7 +1002,7 @@
+             while (target_folder_exists) {
+                 i++;
+                 target_folder_exists = Directory.Exists (
+-                    Path.Combine (SparkleConfig.DefaultConfig.FoldersPath, canonical_name + " (" + i + ")"));
++                    SparkleHelpers.CombineMore (SparkleConfig.DefaultConfig.FoldersPath, canonical_name + " (" + i + ")"));
+             }
+ 
+             string target_folder_name = canonical_name;
+@@ -1013,7 +1013,7 @@
+ 
+                 // Needed to do the moving
+                 SparkleHelpers.ClearAttributes (tmp_folder);
+-                string target_folder_path = Path.Combine (
++                string target_folder_path = SparkleHelpers.CombineMore (
+                     SparkleConfig.DefaultConfig.FoldersPath, target_folder_name);
+ 
+                 try {
+Index: sparkleshare/SparkleShare/SparkleEventLog.cs
+===================================================================
+--- sparkleshare.orig/SparkleShare/SparkleEventLog.cs	2011-07-28 11:10:52.948180334 +0100
++++ sparkleshare/SparkleShare/SparkleEventLog.cs	2011-07-28 11:12:23.768645185 +0100
+@@ -20,6 +20,7 @@
+ using System.Diagnostics;
+ using System.Text.RegularExpressions;
+ using System.Threading;
++using SparkleLib;
+ 
+ using Gtk;
+ using Mono.Unix;
+@@ -214,19 +215,19 @@
+                 html = html.Replace ("<!-- $secondary-font-color -->", SparkleUIHelpers.GdkColorToHex (Style.Foreground (StateType.Insensitive)));
+                 html = html.Replace ("<!-- $small-color -->", SparkleUIHelpers.GdkColorToHex (Style.Foreground (StateType.Insensitive)));
+                 html = html.Replace ("<!-- $no-buddy-icon-background-image -->", "file://" +
+-                        System.IO.Path.Combine (SparkleUI.AssetsPath, "icons",
++                        SparkleHelpers.CombineMore (SparkleUI.AssetsPath, "icons",
+                             "hicolor", "32x32", "status", "avatar-default.png"));
+                 html = html.Replace ("<!-- $document-added-background-image -->", "file://" +
+-                        System.IO.Path.Combine (SparkleUI.AssetsPath, "icons",
++                        SparkleHelpers.CombineMore (SparkleUI.AssetsPath, "icons",
+                             "hicolor", "12x12", "status", "document-added.png"));
+                 html = html.Replace ("<!-- $document-edited-background-image -->", "file://" +
+-                        System.IO.Path.Combine (SparkleUI.AssetsPath, "icons",
++                        SparkleHelpers.CombineMore (SparkleUI.AssetsPath, "icons",
+                             "hicolor", "12x12", "status", "document-edited.png"));
+                 html = html.Replace ("<!-- $document-deleted-background-image -->", "file://" +
+-                        System.IO.Path.Combine (SparkleUI.AssetsPath, "icons",
++                        SparkleHelpers.CombineMore (SparkleUI.AssetsPath, "icons",
+                             "hicolor", "12x12", "status", "document-deleted.png"));
+                 html = html.Replace ("<!-- $document-moved-background-image -->", "file://" +
+-                        System.IO.Path.Combine (SparkleUI.AssetsPath, "icons",
++                        SparkleHelpers.CombineMore (SparkleUI.AssetsPath, "icons",
+                             "hicolor", "12x12", "status", "document-moved.png"));
+ 
+                 Application.Invoke (delegate {
+Index: sparkleshare/SparkleShare/SparkleLinController.cs
+===================================================================
+--- sparkleshare.orig/SparkleShare/SparkleLinController.cs	2011-07-28 11:10:52.904182046 +0100
++++ sparkleshare/SparkleShare/SparkleLinController.cs	2011-07-28 11:12:23.768645185 +0100
+@@ -23,6 +23,7 @@
+ using System.Text;
+ using System.Threading;
+ 
++
+ using Mono.Unix;
+ using SparkleLib;
+ 
+@@ -40,10 +41,10 @@
+         // start SparkleShare automatically at login
+         public override void EnableSystemAutostart ()
+         {
+-            string autostart_path = Path.Combine (Environment.GetFolderPath (
++            string autostart_path = SparkleHelpers.CombineMore (Environment.GetFolderPath (
+                 Environment.SpecialFolder.ApplicationData), "autostart");
+ 
+-            string desktopfile_path = Path.Combine (autostart_path, "sparkleshare.desktop");
++            string desktopfile_path = SparkleHelpers.CombineMore (autostart_path, "sparkleshare.desktop");
+ 
+             if (!Directory.Exists (autostart_path))
+                 Directory.CreateDirectory (autostart_path);
+@@ -73,7 +74,7 @@
+         // from the Internet category if needed
+         public override void InstallLauncher ()
+         {
+-            string apps_path = Path.Combine (SparkleConfig.DefaultConfig.HomePath,
++            string apps_path = SparkleHelpers.CombineMore (SparkleConfig.DefaultConfig.HomePath,
+                 ".local", "share", "applications");
+ 
+             string desktopfile_path = SparkleHelpers.CombineMore (apps_path, "sparkleshare.desktop");
+@@ -106,7 +107,7 @@
+         // list of bookmarked places
+         public override void AddToBookmarks ()
+         {
+-            string bookmarks_file_path   = Path.Combine (SparkleConfig.DefaultConfig.HomePath, ".gtk-bookmarks");
++            string bookmarks_file_path   = SparkleHelpers.CombineMore (SparkleConfig.DefaultConfig.HomePath, ".gtk-bookmarks");
+             string sparkleshare_bookmark = "file://" + SparkleConfig.DefaultConfig.FoldersPath + " SparkleShare";
+ 
+             if (File.Exists (bookmarks_file_path)) {
+@@ -135,7 +136,7 @@
+                 Directory.CreateDirectory (SparkleConfig.DefaultConfig.FoldersPath);
+                 SparkleHelpers.DebugInfo ("Controller", "Created '" + SparkleConfig.DefaultConfig.FoldersPath + "'");
+ 
+-                string gvfs_command_path = Path.Combine (Path.VolumeSeparatorChar.ToString (),
++                string gvfs_command_path = SparkleHelpers.CombineMore (Path.VolumeSeparatorChar.ToString (),
+                     "usr", "bin", "gvfs-set-attribute");
+ 
+                 // Add a special icon to the SparkleShare folder
+@@ -166,13 +167,13 @@
+ 
+         public override string EventLogHTML {
+             get {
+-                string path = Path.Combine (Defines.PREFIX,
++                string path = SparkleHelpers.CombineMore (Defines.PREFIX,
+                     "share", "sparkleshare", "html", "event-log.html");
+ 
+                 string html = String.Join (Environment.NewLine, File.ReadAllLines (path));
+ 
+                 html = html.Replace ("<!-- $jquery-url -->", "file://" +
+-                  Path.Combine (Defines.PREFIX, "share", "sparkleshare", "html", "jquery.js"));
++                  SparkleHelpers.CombineMore (Defines.PREFIX, "share", "sparkleshare", "html", "jquery.js"));
+             
+                 return html;
+             }
+@@ -181,7 +182,7 @@
+         
+         public override string DayEntryHTML {
+             get {
+-                string path = Path.Combine (Defines.PREFIX,
++                string path = SparkleHelpers.CombineMore (Defines.PREFIX,
+                     "share", "sparkleshare", "html", "day-entry.html");
+             
+                 return String.Join (Environment.NewLine, File.ReadAllLines (path));
+@@ -191,7 +192,7 @@
+         
+         public override string EventEntryHTML {
+             get {
+-                string path = Path.Combine (Defines.PREFIX,
++                string path = SparkleHelpers.CombineMore (Defines.PREFIX,
+                     "share", "sparkleshare", "html", "event-entry.html");
+             
+                 return String.Join (Environment.NewLine, File.ReadAllLines (path));
+@@ -201,7 +202,7 @@
+             
+         public override void OpenSparkleShareFolder (string subfolder)
+         {
+-            string folder = Path.Combine (SparkleConfig.DefaultConfig.FoldersPath, subfolder);
++            string folder = SparkleHelpers.CombineMore (SparkleConfig.DefaultConfig.FoldersPath, subfolder);
+ 
+             Process process = new Process ();
+             process.StartInfo.FileName  = "xdg-open";
+Index: sparkleshare/SparkleShare/SparkleUI.cs
+===================================================================
+--- sparkleshare.orig/SparkleShare/SparkleUI.cs	2011-07-28 11:10:52.928181112 +0100
++++ sparkleshare/SparkleShare/SparkleUI.cs	2011-07-28 11:12:23.780644718 +0100
+@@ -37,7 +37,7 @@
+         public static SparkleBubbles Bubbles;
+         public static SparkleSetup Setup;
+         public static SparkleAbout About;
+-        public static string AssetsPath = Path.Combine (Defines.PREFIX, "share", "sparkleshare");
++        public static string AssetsPath = SparkleHelpers.CombineMore (Defines.PREFIX, "share", "sparkleshare");
+ 
+ 
+         // Short alias for the translations
+Index: sparkleshare/po/POTFILES.skip
+===================================================================
+--- sparkleshare.orig/po/POTFILES.skip	2011-07-28 11:12:32.240315426 +0100
++++ sparkleshare/po/POTFILES.skip	2011-07-28 11:12:38.548069896 +0100
+@@ -2,3 +2,6 @@
+ SparkleShare/Nautilus/sparkleshare-nautilus-extension.py
+ SparkleLib/SparkleOptions.cs
+ .pc/0001-Add-missing-shebang-to-nautilus-extension.patch/SparkleShare/Nautilus/sparkleshare-nautilus-extension.py.in
++.pc/0002-Use-SparkleHelpers-method-instead-of-4.0-only-librar.patch/SparkleShare/SparkleAbout.cs
++.pc/0002-Use-SparkleHelpers-method-instead-of-4.0-only-librar.patch/SparkleShare/SparkleController.cs
++.pc/0002-Use-SparkleHelpers-method-instead-of-4.0-only-librar.patch/SparkleShare/SparkleEventLog.cs
