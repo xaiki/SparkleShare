@@ -7,7 +7,6 @@ EXTRA_DIST = \
   SparkleAlert.cs \
   SparkleSetup.cs \
   SparkleEventLog.cs \
-  SparkleMacController.cs \
   SparkleMacWatcher.cs \
   SparkleShare.csproj \
   SparkleShare.sln \

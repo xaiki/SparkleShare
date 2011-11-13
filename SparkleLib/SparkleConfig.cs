@@ -28,10 +28,9 @@ namespace SparkleLib {
 
         public static string ConfigPath = Path.Combine (
             Environment.GetFolderPath (Environment.SpecialFolder.ApplicationData),
-            "sparkleshare");
+                "sparkleshare");
 
-        public static SparkleConfig DefaultConfig = new SparkleConfig (
-            ConfigPath, "config.xml");
+        public static SparkleConfig DefaultConfig = new SparkleConfig (ConfigPath, "config.xml");
 
 
         public string FullPath;
@@ -65,10 +64,30 @@ namespace SparkleLib {
                 SparkleHelpers.DebugInfo ("Config", "Created \"" + icons_path + "\"");
             }
 
-            if (!File.Exists (FullPath))
+            try {
+              Load (FullPath);
+              
+            } catch (TypeInitializationException) {
                 CreateInitialConfig ();
 
-            Load (FullPath);
+            } catch (FileNotFoundException) {
+                CreateInitialConfig ();
+
+            } catch (XmlException) {
+            
+                FileInfo file = new FileInfo (FullPath);
+                
+                if (file.Length == 0) {
+                    File.Delete (FullPath);
+                    CreateInitialConfig ();
+
+                } else {
+                    throw new XmlException (FullPath + " does not contain a valid config XML structure.");
+                }
+
+            } finally {
+                Load (FullPath);
+            }
         }
 
 
@@ -92,17 +111,15 @@ namespace SparkleLib {
             if (string.IsNullOrEmpty (user_name))
                 user_name = "Unknown";
 
-            TextWriter writer = new StreamWriter (FullPath);
-            string n          = Environment.NewLine;
-
-            writer.Write ("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" + n +
-                          "<sparkleshare>" + n +
-                          "  <user>" + n +
-                          "    <name>" + user_name + "</name>" + n +
-                          "    <email>Unknown</email>" + n +
-                          "  </user>" + n +
-                          "</sparkleshare>");
-            writer.Close ();
+            string n = Environment.NewLine;
+            File.WriteAllText (FullPath,
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>" + n +
+                "<sparkleshare>" + n +
+                "  <user>" + n +
+                "    <name>" + user_name + "</name>" + n +
+                "    <email>Unknown</email>" + n +
+                "  </user>" + n +
+                "</sparkleshare>");
 
             SparkleHelpers.DebugInfo ("Config", "Created \"" + FullPath + "\"");
         }
@@ -234,7 +251,6 @@ namespace SparkleLib {
         }
 
 
-
         public List<string> Hosts {
             get {
                 List<string> hosts = new List<string> ();
@@ -256,10 +272,16 @@ namespace SparkleLib {
                 List<string> hosts = new List<string> ();
 
                 foreach (XmlNode node_folder in SelectNodes ("/sparkleshare/folder")) {
-                    Uri uri = new Uri (node_folder ["url"].InnerText);
+                    try {
+                        Uri uri = new Uri (node_folder ["url"].InnerText);
 
-                    if ("git" != uri.UserInfo && !hosts.Contains (uri.UserInfo + "@" + uri.Host))
-                        hosts.Add (uri.UserInfo + "@" + uri.Host);
+                        if (uri.UserInfo != "git" && !hosts.Contains (uri.UserInfo + "@" + uri.Host))
+                            hosts.Add (uri.UserInfo + "@" + uri.Host);
+
+                    } catch (UriFormatException) {
+                        SparkleHelpers.DebugInfo ("Config",
+                            "Ignoring badly formatted URI: " + node_folder ["url"].InnerText);
+                    }
                 }
 
               return hosts;
@@ -333,3 +355,4 @@ namespace SparkleLib {
             base (message) { }
     }
 }
+

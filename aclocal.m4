@@ -19,6 +19,63 @@ You have another version of autoconf.  It may work, but is not guaranteed to.
 If you have problems, you may need to regenerate the build system entirely.
 To do so, use the procedure documented by the package, typically `autoreconf'.])])
 
+dnl Do not call GNOME_DOC_DEFINES directly.  It is split out from
+dnl GNOME_DOC_INIT to allow gnome-doc-utils to bootstrap off itself.
+AC_DEFUN([GNOME_DOC_DEFINES],
+[
+AC_ARG_WITH([help-dir],
+  AC_HELP_STRING([--with-help-dir=DIR], [path to help docs]),,
+  [with_help_dir='${datadir}/gnome/help'])
+HELP_DIR="$with_help_dir"
+AC_SUBST(HELP_DIR)
+
+AC_ARG_WITH([omf-dir],
+  AC_HELP_STRING([--with-omf-dir=DIR], [path to OMF files]),,
+  [with_omf_dir='${datadir}/omf'])
+OMF_DIR="$with_omf_dir"
+AC_SUBST(OMF_DIR)
+
+AC_ARG_WITH([help-formats],
+  AC_HELP_STRING([--with-help-formats=FORMATS], [list of formats]),,
+  [with_help_formats=''])
+DOC_USER_FORMATS="$with_help_formats"
+AC_SUBST(DOC_USER_FORMATS)
+
+AC_ARG_ENABLE([scrollkeeper],
+	[AC_HELP_STRING([--disable-scrollkeeper],
+			[do not make updates to the scrollkeeper database])],,
+	enable_scrollkeeper=yes)
+AM_CONDITIONAL([ENABLE_SK],[test "$gdu_cv_have_gdu" = "yes" -a "$enable_scrollkeeper" = "yes"])
+
+dnl disable scrollkeeper automatically for distcheck
+DISTCHECK_CONFIGURE_FLAGS="--disable-scrollkeeper $DISTCHECK_CONFIGURE_FLAGS"
+AC_SUBST(DISTCHECK_CONFIGURE_FLAGS)
+
+AM_CONDITIONAL([HAVE_GNOME_DOC_UTILS],[test "$gdu_cv_have_gdu" = "yes"])
+])
+
+# GNOME_DOC_INIT ([MINIMUM-VERSION],[ACTION-IF-FOUND],[ACTION-IF-NOT-FOUND])
+#
+AC_DEFUN([GNOME_DOC_INIT],
+[AC_REQUIRE([AC_PROG_LN_S])dnl
+
+ifelse([$1],,[gdu_cv_version_required=0.3.2],[gdu_cv_version_required=$1])
+
+AC_MSG_CHECKING([gnome-doc-utils >= $gdu_cv_version_required])
+PKG_CHECK_EXISTS([gnome-doc-utils >= $gdu_cv_version_required],
+	[gdu_cv_have_gdu=yes],[gdu_cv_have_gdu=no])
+
+if test "$gdu_cv_have_gdu" = "yes"; then
+	AC_MSG_RESULT([yes])
+	ifelse([$2],,[:],[$2])
+else
+	AC_MSG_RESULT([no])
+	ifelse([$3],,[AC_MSG_ERROR([gnome-doc-utils >= $gdu_cv_version_required not found])],[$3])
+fi
+
+GNOME_DOC_DEFINES
+])
+
 
 dnl IT_PROG_INTLTOOL([MINIMUM-VERSION], [no-xml])
 # serial 40 IT_PROG_INTLTOOL
@@ -274,7 +331,8 @@ AC_DEFUN([AM_NLS],
 # ----------------------------------
 AC_DEFUN([PKG_PROG_PKG_CONFIG],
 [m4_pattern_forbid([^_?PKG_[A-Z_]+$])
-m4_pattern_allow([^PKG_CONFIG(_PATH)?$])
+m4_pattern_allow([^PKG_CONFIG(_(PATH|LIBDIR|SYSROOT_DIR|ALLOW_SYSTEM_(CFLAGS|LIBS)))?$])
+m4_pattern_allow([^PKG_CONFIG_(DISABLE_UNINSTALLED|TOP_BUILD_DIR|DEBUG_SPEW)$])
 AC_ARG_VAR([PKG_CONFIG], [path to pkg-config utility])
 AC_ARG_VAR([PKG_CONFIG_PATH], [directories to add to pkg-config's search path])
 AC_ARG_VAR([PKG_CONFIG_LIBDIR], [path overriding pkg-config's built-in search path])
@@ -320,7 +378,8 @@ m4_define([_PKG_CONFIG],
     pkg_cv_[]$1="$$1"
  elif test -n "$PKG_CONFIG"; then
     PKG_CHECK_EXISTS([$3],
-                     [pkg_cv_[]$1=`$PKG_CONFIG --[]$2 "$3" 2>/dev/null`],
+                     [pkg_cv_[]$1=`$PKG_CONFIG --[]$2 "$3" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes ],
 		     [pkg_failed=yes])
  else
     pkg_failed=untried
@@ -368,9 +427,9 @@ if test $pkg_failed = yes; then
    	AC_MSG_RESULT([no])
         _PKG_SHORT_ERRORS_SUPPORTED
         if test $_pkg_short_errors_supported = yes; then
-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "$2" 2>&1`
+	        $1[]_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "$2" 2>&1`
         else 
-	        $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors "$2" 2>&1`
+	        $1[]_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "$2" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
@@ -383,7 +442,7 @@ $$1_PKG_ERRORS
 Consider adjusting the PKG_CONFIG_PATH environment variable if you
 installed software in a non-standard prefix.
 
-_PKG_TEXT])
+_PKG_TEXT])[]dnl
         ])
 elif test $pkg_failed = untried; then
      	AC_MSG_RESULT([no])
@@ -394,7 +453,7 @@ path to pkg-config.
 
 _PKG_TEXT
 
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.])
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.])[]dnl
         ])
 else
 	$1[]_CFLAGS=$pkg_cv_[]$1[]_CFLAGS
@@ -1391,7 +1450,6 @@ AC_SUBST([am__tar])
 AC_SUBST([am__untar])
 ]) # _AM_PROG_TAR
 
-m4_include([build/m4/gnome-doc-utils.m4])
 m4_include([build/m4/shave/shave.m4])
 m4_include([build/m4/shamrock/expansions.m4])
 m4_include([build/m4/shamrock/gnome-doc.m4])

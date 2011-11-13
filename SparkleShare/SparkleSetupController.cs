@@ -16,7 +16,10 @@
 
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+
+using SparkleLib;
 
 namespace SparkleShare {
 
@@ -25,7 +28,8 @@ namespace SparkleShare {
         Add,
         Syncing,
         Error,
-        Finished
+        Finished,
+        Tutorial
     }
 
 
@@ -33,16 +37,49 @@ namespace SparkleShare {
 
         public event ChangePageEventHandler ChangePageEvent;
         public delegate void ChangePageEventHandler (PageType page);
+        
+        public event UpdateProgressBarEventHandler UpdateProgressBarEvent;
+        public delegate void UpdateProgressBarEventHandler (double percentage);
 
-        public string PreviousServer {
+        public event ChangeAddressFieldEventHandler ChangeAddressFieldEvent;
+        public delegate void ChangeAddressFieldEventHandler (string text,
+            string example_text, FieldState state);
+
+        public event ChangePathFieldEventHandler ChangePathFieldEvent;
+        public delegate void ChangePathFieldEventHandler (string text,
+            string example_text, FieldState state);
+
+        public readonly List<SparklePlugin> Plugins = new List<SparklePlugin> ();
+        public SparklePlugin SelectedPlugin;
+
+
+        public int SelectedPluginIndex {
             get {
-                return this.previous_server;
+                return Plugins.IndexOf (SelectedPlugin);
             }
         }
 
-        public string PreviousFolder {
+        public int TutorialPageNumber {
             get {
-                return this.previous_folder;
+                return this.tutorial_page_number;
+            }
+        }
+
+        public string PreviousUrl {
+            get {
+                return this.previous_url;
+            }
+        }
+
+        public string PreviousAddress {
+            get {
+                return this.previous_address;
+            }
+        }
+
+        public string PreviousPath {
+            get {
+                return this.previous_path;
             }
         }
 
@@ -58,23 +95,54 @@ namespace SparkleShare {
             }
         }
 
-        private string previous_server = "";
-        private string previous_folder = "";
-        private string syncing_folder  = "";
-        private PageType previous_page;
+        public string GuessedUserName {
+            get {
+                return Program.Controller.UserName;
+            }
+        }
 
-        public SparkleSetupController ()
-        {
-            ChangePageEvent += delegate (PageType page) {
-                this.previous_page = page;
-            };
+        public string GuessedUserEmail {
+            get {
+                if (Program.Controller.UserEmail.Equals ("Unknown"))
+                    return "";
+                else
+                    return Program.Controller.UserEmail;
+            }
         }
 
 
-        public void ShowAddPage ()
+        private string previous_address  = "";
+        private string previous_path     = "";
+        private string previous_url      = "";
+        private string syncing_folder    = "";
+        private int tutorial_page_number = 1;
+        private PageType previous_page;
+
+
+        public SparkleSetupController ()
         {
-           if (ChangePageEvent != null)
-               ChangePageEvent (PageType.Add);
+            string local_plugins_path = SparkleHelpers.CombineMore (
+                Environment.GetFolderPath (Environment.SpecialFolder.ApplicationData),
+                "sparkleshare", "plugins");
+
+            if (Directory.Exists (local_plugins_path))
+                foreach (string xml_file_path in Directory.GetFiles (local_plugins_path, "*.xml"))
+                    Plugins.Add (new SparklePlugin (xml_file_path));
+
+            if (Directory.Exists (Program.Controller.PluginsPath)) {
+                foreach (string xml_file_path in Directory.GetFiles (Program.Controller.PluginsPath, "*.xml")) {
+                    if (xml_file_path.EndsWith ("own-server.xml"))
+                        Plugins.Insert (0, new SparklePlugin (xml_file_path));
+                    else
+                        Plugins.Add (new SparklePlugin (xml_file_path));
+                }
+            }
+
+            SelectedPlugin = Plugins [0];
+
+            ChangePageEvent += delegate (PageType page) {
+                this.previous_page = page;
+            };
         }
 
 
@@ -87,41 +155,78 @@ namespace SparkleShare {
 
         public void SetupPageCompleted (string full_name, string email)
         {
-            SparkleShare.Controller.UserName  = full_name;
-            SparkleShare.Controller.UserEmail = email;
+            Program.Controller.UserName  = full_name;
+            Program.Controller.UserEmail = email;
 
-            SparkleShare.Controller.GenerateKeyPair ();
-            SparkleShare.Controller.UpdateState ();
+            Program.Controller.GenerateKeyPair ();
+            Program.Controller.UpdateState ();
 
             if (ChangePageEvent != null)
-                ChangePageEvent (PageType.Add);
+                ChangePageEvent (PageType.Tutorial);
         }
 
 
-        public void AddPageCompleted (string server, string folder_name)
+        public void TutorialPageCompleted ()
         {
-            this.syncing_folder = Path.GetFileNameWithoutExtension (folder_name);
-            this.previous_server = server;
-            this.previous_folder = folder_name;
+            this.tutorial_page_number++;
+
+            if (ChangePageEvent != null)
+                ChangePageEvent (PageType.Tutorial);
+        }
+
+
+        public void TutorialSkipped ()
+        {
+            this.tutorial_page_number = 4;
+
+            if (ChangePageEvent != null)
+                ChangePageEvent (PageType.Tutorial);
+        }
+
+
+        public void ShowAddPage ()
+        {
+            if (ChangePageEvent != null)
+                ChangePageEvent (PageType.Add);
+
+            SelectedPluginChanged (SelectedPluginIndex);
+        }
+
+
+        public void AddPageCompleted (string address, string path)
+        {
+            this.syncing_folder   = Path.GetFileNameWithoutExtension (path);
+            this.previous_address = address;
+            this.previous_path    = path;
 
             if (ChangePageEvent != null)
                 ChangePageEvent (PageType.Syncing);
 
-            SparkleShare.Controller.FolderFetched += delegate {
+            Program.Controller.FolderFetched += delegate {
                 if (ChangePageEvent != null)
                     ChangePageEvent (PageType.Finished);
 
-                this.syncing_folder = "";
+                this.previous_address = "";
+                this.syncing_folder   = "";
+                this.previous_url     = "";
+                SelectedPlugin        = Plugins [0];
             };
 
-            SparkleShare.Controller.FolderFetchError += delegate {
+            Program.Controller.FolderFetchError += delegate (string remote_url) {
+                this.previous_url = remote_url;
+
                 if (ChangePageEvent != null)
                     ChangePageEvent (PageType.Error);
 
                 this.syncing_folder = "";
             };
+            
+            Program.Controller.FolderFetching += delegate (double percentage) {
+                if (UpdateProgressBarEvent != null)
+                    UpdateProgressBarEvent (percentage);
+            };
 
-            SparkleShare.Controller.FetchFolder (server, folder_name);
+            Program.Controller.FetchFolder (address, path);
         }
 
 
@@ -132,11 +237,57 @@ namespace SparkleShare {
         }
 
 
+        public void SyncingCancelled ()
+        {
+            Program.Controller.StopFetcher ();
+
+            if (ChangePageEvent != null)
+                ChangePageEvent (PageType.Add);
+        }
+
+
         public void FinishedPageCompleted ()
         {
-            this.previous_server = "";
-            this.previous_folder = "";
-            SparkleShare.Controller.UpdateState ();
+            this.previous_address = "";
+            this.previous_path    = "";
+            Program.Controller.UpdateState ();
         }
+
+
+        public void SelectedPluginChanged (int plugin_index)
+        {
+            SelectedPlugin = Plugins [plugin_index];
+
+            if (SelectedPlugin.Address != null) {
+                if (ChangeAddressFieldEvent != null)
+                    ChangeAddressFieldEvent (SelectedPlugin.Address, "", FieldState.Disabled);
+
+            } else if (SelectedPlugin.AddressExample != null) {
+                if (ChangeAddressFieldEvent != null)
+                    ChangeAddressFieldEvent ("", SelectedPlugin.AddressExample, FieldState.Enabled);
+            } else {
+                if (ChangeAddressFieldEvent != null)
+                    ChangeAddressFieldEvent ("", "", FieldState.Enabled);
+            }
+
+            if (SelectedPlugin.Path != null) {
+                if (ChangePathFieldEvent != null)
+                    ChangePathFieldEvent (SelectedPlugin.Path, "", FieldState.Disabled);
+
+            } else if (SelectedPlugin.PathExample != null) {
+                if (ChangePathFieldEvent != null)
+                    ChangePathFieldEvent ("", SelectedPlugin.PathExample, FieldState.Enabled);
+
+            } else {
+                if (ChangePathFieldEvent != null)
+                    ChangePathFieldEvent ("", "", FieldState.Enabled);
+            }
+        }
+    }
+
+
+    public enum FieldState {
+        Enabled,
+        Disabled
     }
 }
