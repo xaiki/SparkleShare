@@ -1,3 +1,13 @@
+sparkleshare (0.4.0-1) experimental; urgency=low
+
+  * [8a32190] Imported Upstream version 0.4.0
+  * [53a5447] Remove 
+    0002-Use-SparkleHelpers-method-instead-of-4.0-only-librar.patch
+  * [e9f220f] Don't run 'make check'
+  * [d6970b8] Add shebang to the nautilus3 extension
+
+ -- Carlos Martín Nieto <carlos@cmartin.tk>  Wed, 23 Nov 2011 22:23:41 +0000
+
 sparkleshare (0.2.5-2) experimental; urgency=low
 
   * [c19513a] New patch to use SparkleHelpers method instead of 4.0 only
