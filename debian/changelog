@@ -1,3 +1,14 @@
+sparkleshare (0.4.0-2) experimental; urgency=low
+
+  * [2ac5762] Depend on gnome-icon-theme.
+    SparkleShare unconditionally uses GNOME icons and crashes when they are
+    not available. (Closes: #650209)
+  * [21c88c5] Fix syntax errors in d/copyright, thanks Lintian
+  * [f19ee73] Remove BD on nautlius-python since it is currently broken in Debian.
+    When #649910 is fixed we can look at enabling it again.
+
+ -- Iain Lane <laney@debian.org>  Mon, 28 Nov 2011 14:43:14 +0000
+
 sparkleshare (0.4.0-1) experimental; urgency=low
 
   * [8a32190] Imported Upstream version 0.4.0
