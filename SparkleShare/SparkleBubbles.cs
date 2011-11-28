@@ -30,17 +30,37 @@ namespace SparkleShare {
         public SparkleBubbles ()
         {
             Controller.ShowBubbleEvent += delegate (string title, string subtext, string image_path) {
-                Notification notification = new Notification () {
-                    Timeout  = 5 * 1000,
-                    Urgency  = Urgency.Low
-                };
+                try {
+                    Notification notification = new Notification () {
+                        Summary = title,
+                        Body    = subtext,
+                        Timeout = 5 * 1000,
+                        Urgency = Urgency.Low
+                    };
+    
+                    if (image_path != null)
+                        notification.Icon = new Gdk.Pixbuf (image_path);
+                    else
+                        notification.IconName = "folder-sparkleshare";
 
-                if (image_path != null)
-                    notification.Icon = new Gdk.Pixbuf (image_path);
-                else
-                    notification.IconName = "folder-sparkleshare";
+                    notification.Closed += delegate {
+                        Application.Invoke (delegate {
+                            if (SparkleUI.EventLog == null)
+                                SparkleUI.EventLog = new SparkleEventLog ();
 
-                notification.Show ();
+                            SparkleUI.EventLog.Controller.SelectedFolder = null;
+
+                            SparkleUI.EventLog.ShowAll ();
+                            SparkleUI.EventLog.Present ();
+                        });
+                    };
+
+                    notification.Show ();
+
+                } catch (Exception) {
+                    // Ignore exceptions thrown by libnotify,
+                    // they're not important enough to crash
+                }
             };
         }
     }

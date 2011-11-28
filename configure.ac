@@ -1,9 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
 m4_define([sparkleshare_version],
-	[0.2.5])
+	[0.4.0])
 
 m4_define([sparkleshare_asm_version],
-	[0.2.5])
+	[0.4.0])
 
 AC_PREREQ([2.54])
 AC_INIT([SparkleShare], sparkleshare_version)
@@ -88,7 +88,7 @@ dnl package checks, common for all configs
 SPARKLESHARE_CHECK_GTK_SHARP
 
 SPARKLESHARE_SMARTIRC4NET
-PKG_CHECK_MODULES([SMARTIRC4NET], [smartirc4net],
+PKG_CHECK_MODULES([SMARTIRC4NET], [smartirc4net >= 0.5],
 	SMARTIRC4NET_ASSEMBLY=""
 	AC_SUBST(SMARTIRC4NET_ASSEMBLY)
 	,
@@ -165,6 +165,7 @@ build/m4/shave/shave-libtool
 data/Makefile
 data/icons/Makefile
 data/html/Makefile
+data/plugins/Makefile
 help/Makefile
 SparkleLib/AssemblyInfo.cs
 SparkleLib/Defines.cs
@@ -174,6 +175,7 @@ SparkleShare/Makefile
 SparkleShare/Mac/Makefile
 SparkleShare/Nautilus/Makefile
 SparkleShare/Nautilus/sparkleshare-nautilus-extension.py
+SparkleShare/Nautilus/sparkleshare-nautilus3-extension.py
 po/Makefile.in
 Makefile
 ])
@@ -184,7 +186,8 @@ SparkleShare ${VERSION}
 Configuration:
        Prefix              : ${prefix}
        Build Gtk+ UI       : ${enable_gtkui}
-       Nautilus plugin     : ${have_nautilus_python}
+       Nautilus 2.x plugin : ${have_nautilus2_python}
+       Nautilus 3.x plugin : ${have_nautilus3_python}
        User Help           : ${enable_user_help} (requires gnome-doc-utils >= 0.17.3)
 
 "

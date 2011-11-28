@@ -53,8 +53,8 @@ namespace SparkleShare {
             Title          = _("About SparkleShare");
             AppPaintable   = true;
 
-            string image_path = System.IO.Path.Combine (SparkleUI.AssetsPath,
-                 "pixmaps", "about.png");
+            string image_path = new string [] {SparkleUI.AssetsPath,
+                 "pixmaps", "about.png"}.Combine ();
 
             Realize ();
             Gdk.Pixbuf buf = new Gdk.Pixbuf (image_path);
@@ -75,7 +75,7 @@ namespace SparkleShare {
 
             Controller.VersionUpToDateEvent += delegate {
                 Application.Invoke (delegate {
-                    this.updates.Markup = String.Format ("<span font_size='small' fgcolor='#4e9a06'>{0}</span>",
+                    this.updates.Markup = String.Format ("<span font_size='small' fgcolor='#729fcf'>{0}</span>",
                         _("You are running the latest version."));
 
                     this.updates.ShowAll ();
@@ -84,7 +84,7 @@ namespace SparkleShare {
 
             Controller.CheckingForNewVersionEvent += delegate {
                 Application.Invoke (delegate {
-                    this.updates.Markup = String.Format ("<span font_size='small' fgcolor='#4e9a06'>{0}</span>",
+                    this.updates.Markup = String.Format ("<span font_size='small' fgcolor='#729fcf'>{0}</span>",
                         _("Checking for updates..."));
 
                     this.updates.ShowAll ();
@@ -97,9 +97,6 @@ namespace SparkleShare {
 
         private void CreateAbout ()
         {
-            Gdk.Color color = Style.Foreground (StateType.Insensitive);
-            string secondary_text_color = SparkleUIHelpers.GdkColorToHex (color);
-
             Label version = new Label () {
                 Markup = "<span font_size='small' fgcolor='white'>" +
                          "version " + Controller.RunningVersion +
@@ -109,7 +106,7 @@ namespace SparkleShare {
             };
 
             this.updates = new Label () {
-                Markup = "<span font_size='small' fgcolor='" + secondary_text_color + "'>" +
+                Markup = "<span font_size='small' fgcolor='#729fcf'>" +
                          _("Checking for updates...") +
                          "</span>",
                 Xalign = 0,

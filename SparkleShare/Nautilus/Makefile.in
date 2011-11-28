@@ -34,10 +34,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 subdir = SparkleShare/Nautilus
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/sparkleshare-nautilus-extension.py.in
+	$(srcdir)/sparkleshare-nautilus-extension.py.in \
+	$(srcdir)/sparkleshare-nautilus3-extension.py.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/build/m4/gnome-doc-utils.m4 \
-	$(top_srcdir)/build/m4/shave/shave.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/build/m4/shave/shave.m4 \
 	$(top_srcdir)/build/m4/shamrock/expansions.m4 \
 	$(top_srcdir)/build/m4/shamrock/gnome-doc.m4 \
 	$(top_srcdir)/build/m4/shamrock/mono.m4 \
@@ -51,7 +51,8 @@ am__aclocal_m4_deps = $(top_srcdir)/build/m4/gnome-doc-utils.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_CLEAN_FILES = sparkleshare-nautilus-extension.py
+CONFIG_CLEAN_FILES = sparkleshare-nautilus-extension.py \
+	sparkleshare-nautilus3-extension.py
 CONFIG_CLEAN_VPATH_FILES =
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
@@ -99,6 +100,8 @@ CYGPATH_W = @CYGPATH_W@
 DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_CONFIGURE_FLAGS@
+DOC_USER_FORMATS = @DOC_USER_FORMATS@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -118,6 +121,7 @@ GTKSHARP_A11Y_LIBS = @GTKSHARP_A11Y_LIBS@
 GTKSHARP_CFLAGS = @GTKSHARP_CFLAGS@
 GTKSHARP_LIBS = @GTKSHARP_LIBS@
 GUISUBDIRS = @GUISUBDIRS@
+HELP_DIR = @HELP_DIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -131,6 +135,7 @@ LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEFLAGS = @MAKEFLAGS@
@@ -142,6 +147,8 @@ MONO_MODULE_CFLAGS = @MONO_MODULE_CFLAGS@
 MONO_MODULE_LIBS = @MONO_MODULE_LIBS@
 MSGFMT = @MSGFMT@
 MSGMERGE = @MSGMERGE@
+NAUTILUS3_PYTHON_CFLAGS = @NAUTILUS3_PYTHON_CFLAGS@
+NAUTILUS3_PYTHON_LIBS = @NAUTILUS3_PYTHON_LIBS@
 NAUTILUS_PREFIX = @NAUTILUS_PREFIX@
 NAUTILUS_PYTHON_CFLAGS = @NAUTILUS_PYTHON_CFLAGS@
 NAUTILUS_PYTHON_DIR = @NAUTILUS_PYTHON_DIR@
@@ -152,6 +159,7 @@ NUNIT_CFLAGS = @NUNIT_CFLAGS@
 NUNIT_LIBS = @NUNIT_LIBS@
 OBJC = @OBJC@
 OBJEXT = @OBJEXT@
+OMF_DIR = @OMF_DIR@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -227,12 +235,16 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 SOURCES = \
-	sparkleshare-nautilus-extension.py
+	sparkleshare-nautilus-extension.py \
+	sparkleshare-nautilus3-extension.py
 
-@NAUTILUS_EXTENSION_ENABLED_TRUE@NAUTILUS_PYTHON_INSTALL_DIR = $(subst $(NAUTILUS_PREFIX)/,${prefix}/,$(NAUTILUS_PYTHON_DIR))
-@NAUTILUS_EXTENSION_ENABLED_TRUE@extensiondir = $(NAUTILUS_PYTHON_INSTALL_DIR)
-@NAUTILUS_EXTENSION_ENABLED_TRUE@extension_SCRIPTS = $(addprefix $(srcdir)/, $(SOURCES))
-@NAUTILUS_EXTENSION_ENABLED_FALSE@EXTRA_DIST = $(SOURCES) sparkleshare-nautilus-extension.py.in
+@NAUTILUS2_EXTENSION_ENABLED_TRUE@NAUTILUS_PYTHON_INSTALL_DIR = $(subst $(NAUTILUS_PREFIX)/,${prefix}/,$(NAUTILUS_PYTHON_DIR))
+@NAUTILUS3_EXTENSION_ENABLED_TRUE@NAUTILUS_PYTHON_INSTALL_DIR = $(subst $(NAUTILUS_PREFIX)/,${prefix}/,$(NAUTILUS_PYTHON_DIR))
+@NAUTILUS2_EXTENSION_ENABLED_TRUE@extensiondir = $(NAUTILUS_PYTHON_INSTALL_DIR)
+@NAUTILUS3_EXTENSION_ENABLED_TRUE@extensiondir = $(NAUTILUS_PYTHON_INSTALL_DIR)
+@NAUTILUS2_EXTENSION_ENABLED_TRUE@extension_SCRIPTS = $(addprefix $(srcdir)/, sparkleshare-nautilus-extension.py))
+@NAUTILUS3_EXTENSION_ENABLED_TRUE@extension_SCRIPTS = $(addprefix $(srcdir)/, sparkleshare-nautilus3-extension.py)
+EXTRA_DIST = $(SOURCES) sparkleshare-nautilus-extension.py.in sparkleshare-nautilus3-extension.py.in
 all: all-am
 
 .SUFFIXES:
@@ -267,6 +279,8 @@ $(ACLOCAL_M4): @MAINTAINER_MODE_TRUE@ $(am__aclocal_m4_deps)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
 $(am__aclocal_m4_deps):
 sparkleshare-nautilus-extension.py: $(top_builddir)/config.status $(srcdir)/sparkleshare-nautilus-extension.py.in
+	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
+sparkleshare-nautilus3-extension.py: $(top_builddir)/config.status $(srcdir)/sparkleshare-nautilus3-extension.py.in
 	cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@
 install-extensionSCRIPTS: $(extension_SCRIPTS)
 	@$(NORMAL_INSTALL)

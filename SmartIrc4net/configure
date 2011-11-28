@@ -2292,6 +2292,7 @@ ASSEMBLY_VERSION="0.4.5.0"
 
 
 
+
 if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
 	if test -n "$ac_tool_prefix"; then
   # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
@@ -2421,6 +2422,7 @@ if test -n "$MONO_MODULE_CFLAGS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_MONO_MODULE_CFLAGS=`$PKG_CONFIG --cflags "mono >= 1.2.6" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -2437,6 +2439,7 @@ if test -n "$MONO_MODULE_LIBS"; then
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
   pkg_cv_MONO_MODULE_LIBS=`$PKG_CONFIG --libs "mono >= 1.2.6" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
 fi
@@ -2456,9 +2459,9 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        MONO_MODULE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "mono >= 1.2.6" 2>&1`
+	        MONO_MODULE_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "mono >= 1.2.6" 2>&1`
         else
-	        MONO_MODULE_PKG_ERRORS=`$PKG_CONFIG --print-errors "mono >= 1.2.6" 2>&1`
+	        MONO_MODULE_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "mono >= 1.2.6" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$MONO_MODULE_PKG_ERRORS" >&5
@@ -2473,7 +2476,6 @@ installed software in a non-standard prefix.
 Alternatively, you may set the environment variables MONO_MODULE_CFLAGS
 and MONO_MODULE_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
-
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -2489,7 +2491,6 @@ See the pkg-config man page for more details.
 
 To get pkg-config, see <http://pkg-config.freedesktop.org/>.
 See \`config.log' for more details" "$LINENO" 5; }
-
 else
 	MONO_MODULE_CFLAGS=$pkg_cv_MONO_MODULE_CFLAGS
 	MONO_MODULE_LIBS=$pkg_cv_MONO_MODULE_LIBS
