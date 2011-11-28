@@ -1,3 +1,13 @@
+sparkleshare (0.4.0-2ubuntu1) precise; urgency=low
+
+  * Merge with Debian experimental, remaining changes:
+    + Add gbp.conf for Ubuntu branch.  Ubuntu sources are stored as a branch
+    in Debian's git repository. Please try to use this if possible (contact
+    the Debian maintainers for merges).
+    + Add BD on libappindicator# to enable app indicator support
+
+ -- Iain Lane <laney@ubuntu.com>  Mon, 28 Nov 2011 14:51:11 +0000
+
 sparkleshare (0.4.0-2) experimental; urgency=low
 
   * [2ac5762] Depend on gnome-icon-theme.
