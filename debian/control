@@ -18,7 +18,8 @@ Vcs-Browser: http://git.debian.org/?p=pkg-cli-apps/packages/sparkleshare.git
 
 Package: sparkleshare
 Architecture: all
-Depends: git (>= 1.7.1),
+Depends: gnome-icon-theme,
+         git (>= 1.7.1),
          gvfs (>= 1.3),
          ${cli:Depends},
          ${misc:Depends},
