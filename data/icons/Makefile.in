@@ -43,7 +43,6 @@ am__aclocal_m4_deps = $(top_srcdir)/build/m4/shave/shave.m4 \
 	$(top_srcdir)/build/m4/sparkleshare/gtk-sharp.m4 \
 	$(top_srcdir)/build/m4/sparkleshare/nautilus-python.m4 \
 	$(top_srcdir)/build/m4/sparkleshare/notify-sharp.m4 \
-	$(top_srcdir)/build/m4/sparkleshare/smartirc4net.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -149,11 +148,6 @@ Q = @Q@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
-SMARTIRC4NET_ASSEMBLY = @SMARTIRC4NET_ASSEMBLY@
-SMARTIRC4NET_CFLAGS = @SMARTIRC4NET_CFLAGS@
-SMARTIRC4NET_FILES = @SMARTIRC4NET_FILES@
-SMARTIRC4NET_LIBS = @SMARTIRC4NET_LIBS@
-SPARKLE_SMARTIRC4NETDIR = @SPARKLE_SMARTIRC4NETDIR@
 STRIP = @STRIP@
 USE_NLS = @USE_NLS@
 V = @V@
@@ -202,7 +196,6 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 shavedir = @shavedir@
 srcdir = @srcdir@
-subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@

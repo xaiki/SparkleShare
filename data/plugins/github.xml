@@ -13,6 +13,7 @@
         <name xml:lang="ru">Github</name>
         <name xml:lang="sv">Github</name>
         <description>Free public Git repositories with collaborator management</description>
+        <description xml:lang="de">Freie öffentliche Git Repositories mit Mitarbeiterverwaltung</description>
         <description xml:lang="es">Repositorios públicos y gratuitos de Git con gestión de colaboradores</description>
         <description xml:lang="fr">Dépôts Git gratuits avec gestion des collaborateurs</description>
         <description xml:lang="nl">Gratis publieke repositories met teambeheer.</description>

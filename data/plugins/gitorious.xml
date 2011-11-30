@@ -31,6 +31,7 @@
         <name xml:lang="zh_CN">Gitorious</name>
         <name xml:lang="zh_TW">Gitorious</name>
         <description>Open source infrastructure for hosting open source projects</description>
+        <description xml:lang="de">Quelloffene Infrastruktur zum hosten von quelloffenen Projekten</description>
         <description xml:lang="es">Infraestructura de código libre para almacenar proyectos de código libre</description>
         <description xml:lang="fr">Infrastructure open source d'hébergement de projets open source</description>
         <description xml:lang="nl">Opensource infrastructuur voor het hosten van opensource projecten.</description>
@@ -47,6 +48,7 @@
     <path>
       <value/>
       <example>/project/repository</example>
+      <example xml:lang="de">/Projekt/Ablage</example>
       <example xml:lang="es">/proyecto/repositorio</example>
       <example xml:lang="fr">/projet/depot</example>
       <example xml:lang="nl">/project/repository</example>
