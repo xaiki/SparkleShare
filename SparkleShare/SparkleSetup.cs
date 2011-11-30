@@ -65,7 +65,7 @@ namespace SparkleShare {
                     )
                 );
 
-            Controller.ChangePageEvent += delegate (PageType type) {
+            Controller.ChangePageEvent += delegate (PageType type, string [] warnings) {
                 Application.Invoke (delegate {
                     Reset ();
 
@@ -87,12 +87,12 @@ namespace SparkleShare {
 
                             NameEntry = new Entry (Controller.GuessedUserName);
                             NameEntry.Changed += delegate {
-                                CheckSetupPage ();
+                                Controller.CheckSetupPage (NameEntry.Text, EmailEntry.Text);
                             };
 
                             EmailEntry = new Entry (Controller.GuessedUserEmail);
                             EmailEntry.Changed += delegate {
-                                CheckSetupPage ();
+                                Controller.CheckSetupPage (NameEntry.Text, EmailEntry.Text);
                             };
 
                             Label email_label = new Label ("<b>" + _("Email:") + "</b>") {
@@ -119,7 +119,7 @@ namespace SparkleShare {
                         AddButton (NextButton);
                         Add (Table);
 
-                        CheckSetupPage ();
+                        Controller.CheckSetupPage (NameEntry.Text, EmailEntry.Text);
 
                         break;
                     } 
@@ -133,10 +133,11 @@ namespace SparkleShare {
                         VBox layout_address  = new VBox (true, 0);
                         VBox layout_path     = new VBox (true, 0);
 
+
                         ListStore store = new ListStore (typeof (Gdk.Pixbuf),
                             typeof (string), typeof (SparklePlugin));
 
-                        TreeView tree = new TreeView (store) { HeadersVisible = false };
+                        SparkleTreeView tree = new SparkleTreeView (store) { HeadersVisible = false };
                         ScrolledWindow scrolled_window = new ScrolledWindow ();
                         scrolled_window.AddWithViewport (tree);
 
@@ -212,16 +213,7 @@ namespace SparkleShare {
 
                         // Update the address field text when the selection changes
                         tree.CursorChanged += delegate (object sender, EventArgs e) {
-                            TreeIter iter;
-                            TreeModel model;
-
-                            TreeSelection selection = (sender as TreeView).Selection;
-                            selection.GetSelected (out model, out iter);
-
-                            // SparklePlugin plugin = (SparklePlugin) model.GetValue (iter, 2);
-                            int selected_path = int.Parse (model.GetPath (iter).ToString ());
-
-                            Controller.SelectedPluginChanged (selected_path);
+                            Controller.SelectedPluginChanged (tree.SelectedRow);
 
                             // TODO: Scroll to selected row when using arrow keys
                         };
@@ -268,7 +260,7 @@ namespace SparkleShare {
                         AddressEntry.Completion.TextColumn = 0;
 
                         AddressEntry.Changed += delegate {
-                            CheckAddPage ();
+                            Controller.CheckAddPage (AddressEntry.Text, PathEntry.Text, tree.SelectedRow);
                         };
 
                                 layout_address.PackStart (new Label () {
@@ -289,7 +281,7 @@ namespace SparkleShare {
                                     PathEntry.Completion.TextColumn = 0;
 
                                     PathEntry.Changed += delegate {
-                                        CheckAddPage ();
+                                        Controller.CheckAddPage (AddressEntry.Text, PathEntry.Text, tree.SelectedRow);
                                     };
 
                                 layout_path.PackStart (new Label () { Markup = "<b>" + _("Remote Path") + "</b>", Xalign = 0 },
@@ -325,7 +317,7 @@ namespace SparkleShare {
                         AddButton (cancel_button);
                         AddButton (SyncButton);
 
-                        CheckAddPage ();
+                        Controller.CheckAddPage (AddressEntry.Text, PathEntry.Text, tree.SelectedRow);
 
                         break;
                     }
@@ -461,7 +453,23 @@ namespace SparkleShare {
                             Close ();
                         };
 
-                        Add (null);
+
+                        if (warnings != null) {
+                            Image warning_image = new Image (SparkleUIHelpers.GetIcon ("dialog-warning", 24));
+                            Label warning_label = new Label (warnings [0]) {
+                                Xalign = 0
+                            };
+
+                            HBox warning_layout = new HBox (false, 0);
+                            warning_layout.PackStart (warning_image, false, false, 0);
+                            warning_layout.PackStart (warning_label, true, true, 0);
+
+                            Add (warning_layout);
+
+                        } else {
+                            Add (null);
+                        }
+
 
                         AddButton (open_folder_button);
                         AddButton (finish_button);
@@ -575,42 +583,6 @@ namespace SparkleShare {
         }
 
 
-        // Enables or disables the 'Next' button depending on the
-        // entries filled in by the user
-        private void CheckSetupPage ()
-        {
-            if (NameEntry.Text.Length > 0 &&
-                Program.Controller.IsValidEmail (EmailEntry.Text)) {
-
-                NextButton.Sensitive = true;
-            } else {
-                NextButton.Sensitive = false;
-            }
-        }
-
-
-        // Enables or disables the 'Next' button depending on the
-        // entries filled in by the user
-        public void CheckAddPage ()
-        {
-            SyncButton.Sensitive = false;
-
-            if (PathEntry.ExampleTextActive ||
-                (AddressEntry.Sensitive && AddressEntry.ExampleTextActive))
-                return;
-
-            bool IsFolder = !PathEntry.Text.Trim ().Equals ("");
-            bool IsServer = !AddressEntry.Text.Trim ().Equals ("");
-
-            if (AddressEntry.Sensitive == true) {
-                if (IsServer && IsFolder)
-                    SyncButton.Sensitive = true;
-            } else if (IsFolder) {
-                    SyncButton.Sensitive = true;
-            }
-        }
-
-
         private void RenderServiceColumn (TreeViewColumn column, CellRenderer cell,
             TreeModel model, TreeIter iter)
         {
@@ -633,6 +605,27 @@ namespace SparkleShare {
                 Convert.ToByte ((255 * (Math.Min (65535, first_color.Green * (1.0 - ratio) + second_color.Green * ratio))) / 65535),
                 Convert.ToByte ((255 * (Math.Min (65535, first_color.Blue  * (1.0 - ratio) + second_color.Blue  * ratio))) / 65535)
             );
+        }
+    }
+
+
+    public class SparkleTreeView : TreeView {
+
+        public int SelectedRow
+        {
+            get {
+                TreeIter iter;
+                TreeModel model;
+
+                Selection.GetSelected (out model, out iter);
+
+                return int.Parse (model.GetPath (iter).ToString ());
+            }
+        }
+
+
+        public SparkleTreeView (ListStore store) : base (store)
+        {
         }
     }
 }

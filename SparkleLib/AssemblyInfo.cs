@@ -7,5 +7,5 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyVersion("0.4.0")]
+[assembly: AssemblyVersion("0.4.1")]
 [assembly: AssemblyTitle ("SparkleShare")]

@@ -11,6 +11,7 @@
         <name xml:lang="ru">Bitbucket</name>
         <name xml:lang="sv">Bitbucket</name>
         <description>Free code hosting for Git and Mercurial</description>
+        <description xml:lang="de">Freies Code-Hosting für Git und Mercurial</description>
         <description xml:lang="es">Alojamiento gratuito de código fuente para Git y Mercurial</description>
         <description xml:lang="fr">Hébergement gratuit de code pour Git et Mercurial</description>
         <description xml:lang="nl">Gratis hosting voor Git en Mercurial</description>
