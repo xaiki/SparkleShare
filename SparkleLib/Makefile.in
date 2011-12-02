@@ -39,7 +39,8 @@ DIST_COMMON = $(srcdir)/AssemblyInfo.cs.in $(srcdir)/Defines.cs.in \
 	$(top_srcdir)/build/build.rules.mk
 subdir = SparkleLib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/build/m4/shave/shave.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/build/m4/gnome-doc-utils.m4 \
+	$(top_srcdir)/build/m4/shave/shave.m4 \
 	$(top_srcdir)/build/m4/shamrock/expansions.m4 \
 	$(top_srcdir)/build/m4/shamrock/gnome-doc.m4 \
 	$(top_srcdir)/build/m4/shamrock/mono.m4 \
@@ -100,8 +101,6 @@ CYGPATH_W = @CYGPATH_W@
 DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
-DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_CONFIGURE_FLAGS@
-DOC_USER_FORMATS = @DOC_USER_FORMATS@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -121,7 +120,6 @@ GTKSHARP_A11Y_LIBS = @GTKSHARP_A11Y_LIBS@
 GTKSHARP_CFLAGS = @GTKSHARP_CFLAGS@
 GTKSHARP_LIBS = @GTKSHARP_LIBS@
 GUISUBDIRS = @GUISUBDIRS@
-HELP_DIR = @HELP_DIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -135,7 +133,6 @@ LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEFLAGS = @MAKEFLAGS@
@@ -159,7 +156,6 @@ NUNIT_CFLAGS = @NUNIT_CFLAGS@
 NUNIT_LIBS = @NUNIT_LIBS@
 OBJC = @OBJC@
 OBJEXT = @OBJEXT@
-OMF_DIR = @OMF_DIR@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
