@@ -32,6 +32,7 @@
     <path>
       <value/>
       <example>/path/to/project</example>
+      <example xml:lang="de">/Pfad/zum/Projekt</example>
       <example xml:lang="es">/ruta/al/proyecto</example>
       <example xml:lang="fr">/chemin/du/projet</example>
       <example xml:lang="nl">/pad/naar/project</example>

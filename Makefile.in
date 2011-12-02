@@ -39,7 +39,8 @@ DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	AUTHORS NEWS config.guess config.sub install-sh ltmain.sh \
 	missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/build/m4/shave/shave.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/build/m4/gnome-doc-utils.m4 \
+	$(top_srcdir)/build/m4/shave/shave.m4 \
 	$(top_srcdir)/build/m4/shamrock/expansions.m4 \
 	$(top_srcdir)/build/m4/shamrock/gnome-doc.m4 \
 	$(top_srcdir)/build/m4/shamrock/mono.m4 \
@@ -48,7 +49,6 @@ am__aclocal_m4_deps = $(top_srcdir)/build/m4/shave/shave.m4 \
 	$(top_srcdir)/build/m4/sparkleshare/gtk-sharp.m4 \
 	$(top_srcdir)/build/m4/sparkleshare/nautilus-python.m4 \
 	$(top_srcdir)/build/m4/sparkleshare/notify-sharp.m4 \
-	$(top_srcdir)/build/m4/sparkleshare/smartirc4net.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -130,8 +130,6 @@ CYGPATH_W = @CYGPATH_W@
 DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
-DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_CONFIGURE_FLAGS@
-DOC_USER_FORMATS = @DOC_USER_FORMATS@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -151,7 +149,6 @@ GTKSHARP_A11Y_LIBS = @GTKSHARP_A11Y_LIBS@
 GTKSHARP_CFLAGS = @GTKSHARP_CFLAGS@
 GTKSHARP_LIBS = @GTKSHARP_LIBS@
 GUISUBDIRS = @GUISUBDIRS@
-HELP_DIR = @HELP_DIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -165,7 +162,6 @@ LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEFLAGS = @MAKEFLAGS@
@@ -189,7 +185,6 @@ NUNIT_CFLAGS = @NUNIT_CFLAGS@
 NUNIT_LIBS = @NUNIT_LIBS@
 OBJC = @OBJC@
 OBJEXT = @OBJEXT@
-OMF_DIR = @OMF_DIR@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -205,11 +200,6 @@ Q = @Q@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
-SMARTIRC4NET_ASSEMBLY = @SMARTIRC4NET_ASSEMBLY@
-SMARTIRC4NET_CFLAGS = @SMARTIRC4NET_CFLAGS@
-SMARTIRC4NET_FILES = @SMARTIRC4NET_FILES@
-SMARTIRC4NET_LIBS = @SMARTIRC4NET_LIBS@
-SPARKLE_SMARTIRC4NETDIR = @SPARKLE_SMARTIRC4NETDIR@
 STRIP = @STRIP@
 USE_NLS = @USE_NLS@
 V = @V@
@@ -258,13 +248,12 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 shavedir = @shavedir@
 srcdir = @srcdir@
-subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-basedirs = build help SmartIrc4net SparkleLib data po
+basedirs = build help SparkleLib data po
 SUBDIRS = $(basedirs) $(GUISUBDIRS)
 DIST_SUBDIRS = $(basedirs) SparkleShare
 EXTRA_DIST = \

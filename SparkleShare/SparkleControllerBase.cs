@@ -38,45 +38,47 @@ namespace SparkleShare {
         public string FolderSize;
         public readonly string SparklePath = SparkleConfig.DefaultConfig.FoldersPath;
 
-        public event OnQuitWhileSyncingEventHandler OnQuitWhileSyncing;
-        public delegate void OnQuitWhileSyncingEventHandler ();
+        public event OnQuitWhileSyncingHandler OnQuitWhileSyncing;
+        public delegate void OnQuitWhileSyncingHandler ();
 
         public event FolderFetchedEventHandler FolderFetched;
-        public delegate void FolderFetchedEventHandler ();
+        public delegate void FolderFetchedEventHandler (string [] warnings);
         
-        public event FolderFetchErrorEventHandler FolderFetchError;
-        public delegate void FolderFetchErrorEventHandler (string remote_url);
+        public event FolderFetchErrorHandler FolderFetchError;
+        public delegate void FolderFetchErrorHandler (string remote_url);
         
-        public event FolderFetchingEventHandler FolderFetching;
-        public delegate void FolderFetchingEventHandler (double percentage);
+        public event FolderFetchingHandler FolderFetching;
+        public delegate void FolderFetchingHandler (double percentage);
         
-        public event FolderListChangedEventHandler FolderListChanged;
-        public delegate void FolderListChangedEventHandler ();
+        public event FolderListChangedHandler FolderListChanged;
+        public delegate void FolderListChangedHandler ();
 
-        public event FolderSizeChangedEventHandler FolderSizeChanged;
-        public delegate void FolderSizeChangedEventHandler (string folder_size);
+        public event FolderSizeChangedHandler FolderSizeChanged;
+        public delegate void FolderSizeChangedHandler (string folder_size);
         
-        public event AvatarFetchedEventHandler AvatarFetched;
-        public delegate void AvatarFetchedEventHandler ();
+        public event AvatarFetchedHandler AvatarFetched;
+        public delegate void AvatarFetchedHandler ();
 
-        public event OnIdleEventHandler OnIdle;
-        public delegate void OnIdleEventHandler ();
+        public event OnIdleHandler OnIdle;
+        public delegate void OnIdleHandler ();
 
-        public event OnSyncingEventHandler OnSyncing;
-        public delegate void OnSyncingEventHandler ();
+        public event OnSyncingHandler OnSyncing;
+        public delegate void OnSyncingHandler ();
 
-        public event OnErrorEventHandler OnError;
-        public delegate void OnErrorEventHandler ();
+        public event OnErrorHandler OnError;
+        public delegate void OnErrorHandler ();
 
-        public event OnInvitationEventHandler OnInvitation;
-        public delegate void OnInvitationEventHandler (string server, string folder, string token);
+        public event OnInviteHandler OnInvite;
+        public delegate void OnInviteHandler (SparkleInvite invite);
 
-        public event ConflictNotificationRaisedEventHandler ConflictNotificationRaised;
-        public delegate void ConflictNotificationRaisedEventHandler ();
+        public event ConflictNotificationRaisedHandler ConflictNotificationRaised;
+        public delegate void ConflictNotificationRaisedHandler ();
 
         public event NotificationRaisedEventHandler NotificationRaised;
-        public delegate void NotificationRaisedEventHandler (string user_name, string user_email,
-                                                             string message, string repository_path);
+        public delegate void NotificationRaisedEventHandler (SparkleChangeSet change_set);
+
+        public event NoteNotificationRaisedEventHandler NoteNotificationRaised;
+        public delegate void NoteNotificationRaisedEventHandler (SparkleUser user, string folder_name);
 
         public abstract string PluginsPath { get; }
 
@@ -134,23 +136,15 @@ namespace SparkleShare {
             };
 
 
-            watcher.Created += delegate (object o, FileSystemEventArgs args) {
+            SparkleInviteListener invite_listener = new SparkleInviteListener (1986);
 
-                // Handle invitations when the user saves an
-                // invitation into the SparkleShare folder
-                if (args.Name.EndsWith (".sparkle") && !FirstRun) {
-                    XmlDocument xml_doc = new XmlDocument (); 
-                    xml_doc.Load (args.Name);
+            invite_listener.InviteReceived += delegate (SparkleInvite invite) {
 
-                    string server = xml_doc.GetElementsByTagName ("server") [0].InnerText;
-                    string folder = xml_doc.GetElementsByTagName ("folder") [0].InnerText;
-                    string token  = xml_doc.GetElementsByTagName ("token") [0].InnerText;
-            
-                    // FIXME: this is broken :\
-                    if (OnInvitation != null)
-                        OnInvitation (server, folder, token);
-                }
+                if (OnInvite != null && !FirstRun)
+                    OnInvite (invite);
             };
+
+            invite_listener.Start ();
 
             new Thread (new ThreadStart (PopulateRepositories)).Start ();
         }
@@ -531,6 +525,9 @@ namespace SparkleShare {
         // Opens the SparkleShare folder or an (optional) subfolder
         public abstract void OpenSparkleShareFolder (string subfolder);
 
+        // Opens a file with the appropriate application
+        public abstract void OpenFile (string url);
+
 
         // Fires events for the current syncing state
         public void UpdateState ()
@@ -578,16 +575,15 @@ namespace SparkleShare {
             SparkleRepoBase repo = new SparkleRepoGit (folder_path, SparkleBackend.DefaultBackend);
 
             repo.NewChangeSet += delegate (SparkleChangeSet change_set) {
-                string message = FormatMessage (change_set);
 
                 if (NotificationRaised != null)
-                    NotificationRaised (change_set.User.Name, change_set.User.Email, message, repo.LocalPath);
+                    NotificationRaised (change_set);
             };
 
-            repo.NewNote += delegate (string user_name, string user_email) {
-                if (NotificationRaised != null)
-                    NotificationRaised (user_name, user_email,
-                        "added a note to " + Path.GetFileName (repo.LocalPath), repo.LocalPath);
+            repo.NewNote += delegate (SparkleUser user) {
+                if (NoteNotificationRaised != null)
+                    NoteNotificationRaised (user, repo.Name);
+
             };
 
             repo.ConflictResolved += delegate {
@@ -697,48 +693,6 @@ namespace SparkleShare {
 
             return FormatFolderSize (folder_size);
         }
-
-
-        private string FormatMessage (SparkleChangeSet change_set)
-        {
-            string file_name = "";
-            string message   = "";
-
-            if (change_set.Added.Count > 0) {
-                file_name = change_set.Added [0];
-                message = String.Format (_("added ‘{0}’"), file_name);
-            }
-
-            if (change_set.MovedFrom.Count > 0) {
-                file_name = change_set.MovedFrom [0];
-                message = String.Format (_("moved ‘{0}’"), file_name);
-            }
-
-            if (change_set.Edited.Count > 0) {
-                file_name = change_set.Edited [0];
-                message = String.Format (_("edited ‘{0}’"), file_name);
-            }
-
-            if (change_set.Deleted.Count > 0) {
-                file_name = change_set.Deleted [0];
-                message = String.Format (_("deleted ‘{0}’"), file_name);
-            }
-
-            int changes_count = (change_set.Added.Count +
-                                 change_set.Edited.Count +
-                                 change_set.Deleted.Count +
-                                 change_set.MovedFrom.Count) - 1;
-
-            if (changes_count > 0) {
-                string msg = Catalog.GetPluralString ("and {0} more", "and {0} more", changes_count);
-                message += " " + String.Format (msg, changes_count);
-
-            } else if (changes_count < 0) {
-                message += _("did something magical");
-            }
-
-            return message;
-        } // TODO: move to bubbles controller
 
 
         // Recursively gets a folder's size in bytes
@@ -1051,7 +1005,7 @@ namespace SparkleShare {
             if (i > 1)
                 target_folder_name += " (" + i + ")";
 
-            this.fetcher.Finished += delegate {
+            this.fetcher.Finished += delegate (string [] warnings) {
 
                 // Needed to do the moving
                 SparkleHelpers.ClearAttributes (tmp_folder);
@@ -1068,7 +1022,7 @@ namespace SparkleShare {
                 AddRepository (target_folder_path);
 
                 if (FolderFetched != null)
-                    FolderFetched ();
+                    FolderFetched (warnings);
 
                 FolderSize = GetFolderSize ();
 
@@ -1152,16 +1106,6 @@ namespace SparkleShare {
         }
 
 
-        // Checks to see if an email address is valid
-        public bool IsValidEmail (string email)
-        {
-            Regex regex = new Regex (@"^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$", RegexOptions.IgnoreCase);
-            return regex.IsMatch (email);
-        }
-
-
-
-
         public void AddNoteToFolder (string folder_name, string revision, string note)
         {
             folder_name = folder_name.Replace ("%20", " ");
@@ -1172,8 +1116,6 @@ namespace SparkleShare {
                     repo.AddNote (revision, note);
             }
         }
-
-
 
 
         private string [] tango_palette = new string [] {"#eaab00", "#e37222",

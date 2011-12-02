@@ -30,6 +30,7 @@
         <name xml:lang="zh_CN">GMOME项目</name>
         <name xml:lang="zh_TW">GNOME 專案</name>
         <description>A free and easy interface for your computer</description>
+        <description xml:lang="de">Eine freie und einfache Schnittstelle für deinen Computer</description>
         <description xml:lang="es">Una interfaz libre y sencilla para tu ordenador</description>
         <description xml:lang="fr">Une interface facile et gratuite pour votre ordinateur</description>
         <description xml:lang="nl">Een gratis en gemakkelijke interface voor uw computer</description>
@@ -46,6 +47,7 @@
     <path>
       <value/>
       <example>/project</example>
+      <example xml:lang="de">/Projekt</example>
       <example xml:lang="es">/proyecto</example>
       <example xml:lang="fr">/projet</example>
       <example xml:lang="nl">/project</example>

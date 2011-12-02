@@ -1,3 +1,13 @@
+sparkleshare (0.4.2-1) experimental; urgency=low
+
+  * [f4116ff] Imported Upstream version 0.4.0
+  * [2e25c2c] Imported Upstream version 0.4.1
+  * [080f6f3] Remove 0001-Add-missing-shebang-to-nautilus-extension.patch.
+    Merged upstream
+  * [0ffa880] Imported Upstream version 0.4.2
+
+ -- Carlos Martín Nieto <carlos@cmartin.tk>  Fri, 02 Dec 2011 16:57:23 +0000
+
 sparkleshare (0.4.0-2ubuntu1) precise; urgency=low
 
   * Merge with Debian experimental, remaining changes:

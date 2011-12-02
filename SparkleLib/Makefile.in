@@ -37,10 +37,10 @@ DIST_COMMON = $(srcdir)/AssemblyInfo.cs.in $(srcdir)/Defines.cs.in \
 	$(top_srcdir)/build/build.environment.mk \
 	$(top_srcdir)/build/build.mk \
 	$(top_srcdir)/build/build.rules.mk
-@ENABLE_TESTS_TRUE@am__append_1 = " $(NUNIT_LIBS)"
 subdir = SparkleLib
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/build/m4/shave/shave.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/build/m4/gnome-doc-utils.m4 \
+	$(top_srcdir)/build/m4/shave/shave.m4 \
 	$(top_srcdir)/build/m4/shamrock/expansions.m4 \
 	$(top_srcdir)/build/m4/shamrock/gnome-doc.m4 \
 	$(top_srcdir)/build/m4/shamrock/mono.m4 \
@@ -49,7 +49,6 @@ am__aclocal_m4_deps = $(top_srcdir)/build/m4/shave/shave.m4 \
 	$(top_srcdir)/build/m4/sparkleshare/gtk-sharp.m4 \
 	$(top_srcdir)/build/m4/sparkleshare/nautilus-python.m4 \
 	$(top_srcdir)/build/m4/sparkleshare/notify-sharp.m4 \
-	$(top_srcdir)/build/m4/sparkleshare/smartirc4net.m4 \
 	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
@@ -102,8 +101,6 @@ CYGPATH_W = @CYGPATH_W@
 DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
-DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_CONFIGURE_FLAGS@
-DOC_USER_FORMATS = @DOC_USER_FORMATS@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -123,7 +120,6 @@ GTKSHARP_A11Y_LIBS = @GTKSHARP_A11Y_LIBS@
 GTKSHARP_CFLAGS = @GTKSHARP_CFLAGS@
 GTKSHARP_LIBS = @GTKSHARP_LIBS@
 GUISUBDIRS = @GUISUBDIRS@
-HELP_DIR = @HELP_DIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -137,7 +133,6 @@ LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
-LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEFLAGS = @MAKEFLAGS@
@@ -161,7 +156,6 @@ NUNIT_CFLAGS = @NUNIT_CFLAGS@
 NUNIT_LIBS = @NUNIT_LIBS@
 OBJC = @OBJC@
 OBJEXT = @OBJEXT@
-OMF_DIR = @OMF_DIR@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -177,11 +171,6 @@ Q = @Q@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
-SMARTIRC4NET_ASSEMBLY = @SMARTIRC4NET_ASSEMBLY@
-SMARTIRC4NET_CFLAGS = @SMARTIRC4NET_CFLAGS@
-SMARTIRC4NET_FILES = @SMARTIRC4NET_FILES@
-SMARTIRC4NET_LIBS = @SMARTIRC4NET_LIBS@
-SPARKLE_SMARTIRC4NETDIR = @SPARKLE_SMARTIRC4NETDIR@
 STRIP = @STRIP@
 USE_NLS = @USE_NLS@
 V = @V@
@@ -230,7 +219,6 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 shavedir = @shavedir@
 srcdir = @srcdir@
-subdirs = @subdirs@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
@@ -238,12 +226,6 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 ASSEMBLY = SparkleLib
 TARGET = library
-@HAVE_SMARTIRC4NET_FALSE@LINK = $(REF_SPARKLELIB) \
-@HAVE_SMARTIRC4NET_FALSE@	$(LINK_SMARTIRC4NET_LOCAL) \
-@HAVE_SMARTIRC4NET_FALSE@	$(am__append_1)
-@HAVE_SMARTIRC4NET_TRUE@LINK = $(REF_SPARKLELIB) \
-@HAVE_SMARTIRC4NET_TRUE@	$(LINK_SMARTIRC4NET_SYSTEM) \
-@HAVE_SMARTIRC4NET_TRUE@	$(am__append_1)
 SOURCES = \
 	Defines.cs \
 	Git/SparkleFetcherGit.cs \
@@ -254,14 +236,10 @@ SOURCES = \
 	SparkleFetcherBase.cs \
 	SparkleHelpers.cs \
 	SparkleListenerBase.cs \
-	SparkleListenerIrc.cs \
 	SparkleListenerTcp.cs \
-	SparkleOptions.cs \
 	SparkleRepoBase.cs \
 	SparkleWatcher.cs
 
-SMARTIRC4NET_FILES_EXPANDED = $(foreach file, $(SMARTIRC4NET_FILES), $(top_builddir)/$(file))
-EXTRA_BUNDLE = $(SMARTIRC4NET_FILES_EXPANDED)
 
 # Initializers
 MONO_BASE_PATH = 
@@ -278,8 +256,6 @@ LINK_GTK = $(GTKSHARP_LIBS)
 LINK_GNOME = $(GNOME_SHARP_LIBS)
 LINK_DBUS = $(NDESK_DBUS_LIBS) $(NDESK_DBUS_GLIB_LIBS)
 LINK_DBUS_NO_GLIB = $(NDESK_DBUS_LIBS)
-LINK_SMARTIRC4NET_SYSTEM = $(SMARTIRC4NET_LIBS)
-LINK_SMARTIRC4NET_LOCAL = -r:$(abs_top_builddir)/$(SMARTIRC4NET_ASSEMBLY)
 LINK_APP_INDICATOR = $(APP_INDICATOR_LIBS)
 REF_NOTIFY_SHARP = $(LINK_SYSTEM) $(LINK_DBUS) $(GTKSHARP_LIBS) $(GLIBSHARP_LIBS)
 LINK_NOTIFY_SHARP = -r:$(DIR_BIN)/NotifySharp.dll
@@ -323,6 +299,7 @@ RESOURCES_BUILD = $(foreach resource, $(RESOURCES_EXPANDED), \
 ASSEMBLY_EXTENSION = $(strip $(patsubst library, dll, $(TARGET)))
 ASSEMBLY_FILE = $(top_builddir)/bin/$(ASSEMBLY).$(ASSEMBLY_EXTENSION)
 INSTALL_DIR_RESOLVED = $(firstword $(subst , $(DEFAULT_INSTALL_DIR), $(INSTALL_DIR)))
+@ENABLE_TESTS_TRUE@LINK = " $(NUNIT_LIBS)"
 @ENABLE_TESTS_TRUE@ENABLE_TESTS_FLAG = "-define:ENABLE_TESTS"
 @ENABLE_ATK_TRUE@ENABLE_ATK_FLAG = "-define:ENABLE_ATK"
 FILTERED_LINK = $(shell echo "$(LINK)" | $(UNIQUE_FILTER_PIPE))
