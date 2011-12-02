@@ -1,3 +1,13 @@
+sparkleshare (0.4.2-1ubuntu1) precise; urgency=low
+
+  * Merge with Debian experimental, remaining changes:
+    + Add gbp.conf for Ubuntu branch.  Ubuntu sources are stored as a branch
+    in Debian's git repository. Please try to use this if possible (contact
+    the Debian maintainers for merges).
+    + Add BD on libappindicator# to enable app indicator support
+
+ -- Iain Lane <laney@ubuntu.com>  Fri, 02 Dec 2011 17:14:04 +0000
+
 sparkleshare (0.4.2-1) experimental; urgency=low
 
   * [f4116ff] Imported Upstream version 0.4.0
