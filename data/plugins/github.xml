@@ -6,20 +6,25 @@
         <name xml:lang="de">Github</name>
         <name xml:lang="es">Github</name>
         <name xml:lang="fr">Github</name>
+        <name xml:lang="it">Github</name>
         <name xml:lang="ja">Github</name>
         <name xml:lang="nl">Github</name>
         <name xml:lang="pl">Github</name>
         <name xml:lang="pt_BR">Github</name>
         <name xml:lang="ru">Github</name>
         <name xml:lang="sv">Github</name>
+        <name xml:lang="zh_CN">Github</name>
         <description>Free public Git repositories with collaborator management</description>
         <description xml:lang="de">Freie öffentliche Git Repositories mit Mitarbeiterverwaltung</description>
         <description xml:lang="es">Repositorios públicos y gratuitos de Git con gestión de colaboradores</description>
         <description xml:lang="fr">Dépôts Git gratuits avec gestion des collaborateurs</description>
+        <description xml:lang="it">Repository pubblici gratuiti con gestione dei collaboratori</description>
         <description xml:lang="nl">Gratis publieke repositories met teambeheer.</description>
         <description xml:lang="pl">Darmowe publiczne repozytoria git z obsługą współpracowników</description>
+        <description xml:lang="pt_BR">Repositórios públicos Git, gratuitos com gestão de colaboradores</description>
         <description xml:lang="ru">Бесплатные публичные Git репозитории с совместной разработкой</description>
         <description xml:lang="sv">Gratis offentliga Git-arkiv med medarbetarehantering</description>
+        <description xml:lang="zh_CN">具备协作管理的免费开放仓库</description>
         <icon>github.png</icon>
         <backend>Git</backend>
     </info>
@@ -33,11 +38,13 @@
       <example xml:lang="de">/username/project</example>
       <example xml:lang="es">/usuario/proyecto</example>
       <example xml:lang="fr">/nom-d-utilisateur/projet</example>
+      <example xml:lang="it">/nome-utente/progetto</example>
       <example xml:lang="nl">/gebruikersnaam/project</example>
       <example xml:lang="pl">/nazwa uzytkownika/projekt</example>
       <example xml:lang="pt_BR">/usuário/projeto</example>
       <example xml:lang="ru">/username/project</example>
       <example xml:lang="sv">/användare/projekt</example>
+      <example xml:lang="zh_CN">/username/project</example>
     </path>
   </plugin>
 </sparkleshare>

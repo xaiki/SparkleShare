@@ -29,6 +29,7 @@ namespace SparkleShare {
 
         public SparkleEventLogController Controller = new SparkleEventLogController ();
 
+        private Label size_label;
         private HBox layout_horizontal;
         private ComboBox combo_box;
         private EventBox content_wrapper;
@@ -58,6 +59,11 @@ namespace SparkleShare {
 
             DeleteEvent += Close;
 
+            this.size_label = new Label () {
+                Markup = "<b>Size:</b> " + Controller.Size + "   " +
+                         "<b>History:</b> " + Controller.HistorySize
+            };
+
             VBox layout_vertical = new VBox (false, 0);
             this.spinner         = new SparkleSpinner (22);
             this.content_wrapper = new EventBox ();
@@ -85,9 +91,9 @@ namespace SparkleShare {
 
             this.spinner.Start ();
 
-            this.layout_horizontal = new HBox (true, 0);
-            this.layout_horizontal.PackStart (new Label (""), true, true, 0);
-            this.layout_horizontal.PackStart (new Label (""), true, true, 0);
+            this.layout_horizontal = new HBox (false, 0);
+            this.layout_horizontal.PackStart (this.size_label, true, true, 0);
+            this.layout_horizontal.PackStart (new Label ("  "), false, false, 0);
 
             layout_vertical.PackStart (this.layout_horizontal, false, false, 0);
             layout_vertical.PackStart (CreateShortcutsBar (), false, false, 0);
@@ -123,6 +129,15 @@ namespace SparkleShare {
                     this.content_wrapper.ShowAll ();
                 });
             };
+
+            Controller.UpdateSizeInfoEvent += delegate (string size, string history_size) {
+                Application.Invoke (delegate {
+                    this.size_label.Markup = "<b>Size:</b> " + size + "   " +
+                                             "<b>History:</b> " + history_size;
+
+                    this.size_label.ShowAll ();
+                });
+            };
         }
 
 
@@ -142,7 +157,7 @@ namespace SparkleShare {
 
             ListStore store = new ListStore (typeof (string));
 
-            store.AppendValues (_("All Folders"));
+            store.AppendValues (_("All Projects"));
             store.AppendValues ("---");
 
             foreach (string folder in folders)

@@ -37,6 +37,7 @@ namespace SparkleShare {
         public static SparkleBubbles Bubbles;
         public static SparkleAbout About;
         public static NSFont Font;
+        public static NSFont BoldFont;
 
 
         public SparkleUI ()
@@ -58,6 +59,9 @@ namespace SparkleShare {
     
                 Font = NSFontManager.SharedFontManager.FontWithFamily
                     ("Lucida Grande", NSFontTraitMask.Condensed, 0, 13);
+
+                BoldFont = NSFontManager.SharedFontManager.FontWithFamily
+                    ("Lucida Grande", NSFontTraitMask.Bold, 0, 13);
 
                 StatusIcon = new SparkleStatusIcon ();
                 Bubbles = new SparkleBubbles ();
@@ -103,6 +107,7 @@ namespace SparkleShare {
         {
             NSApplication.SharedApplication.DockTile.BadgeLabel = null;
         }
+
 
         public override void WillTerminate (NSNotification notification)
         {

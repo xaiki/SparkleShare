@@ -113,6 +113,8 @@ namespace SparkleShare {
 
                         case IconState.Error:
 
+                            Animation.Stop ();
+
                             StateText = _("Not everything is synced");
                             UpdateStateText ();
                             CreateMenu ();
@@ -159,8 +161,7 @@ namespace SparkleShare {
                 else
                     FrameNumber = 0;
 
-                string icon_name = "process-syncing-sparkleshare-";
-
+                string icon_name = "process-syncing-sparkleshare"; 
                 for (int i = 0; i <= FrameNumber; i++)
                     icon_name += "i";
 
@@ -168,7 +169,7 @@ namespace SparkleShare {
                     #if HAVE_APP_INDICATOR
                     this.indicator.IconName = icon_name;
                     #else
-                    this.status_icon.Pixbuf = SparkleUIHelpers.GetIcon (icon_name, 24);
+                    this.status_icon.Pixbuf = AnimationFrames [FrameNumber];
                     #endif
                 });
             };
@@ -260,9 +261,8 @@ namespace SparkleShare {
             Menu.Add (new SeparatorMenuItem ());
 
             MenuItem recent_events_item = new MenuItem (_("Open Recent Events"));
-            
-                if (Program.Controller.Folders.Count < 1)
-                    recent_events_item.Sensitive = false;
+
+                recent_events_item.Sensitive = (Controller.Folders.Length > 0);
 
                 recent_events_item.Activated += delegate {
                     Application.Invoke (delegate {
