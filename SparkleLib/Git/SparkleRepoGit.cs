@@ -59,6 +59,24 @@ namespace SparkleLib {
         }
 
 
+        public override double Size {
+            get {
+                return CalculateSize (
+                    new DirectoryInfo (LocalPath)
+                );
+            }
+        }
+
+
+        public override double HistorySize {
+            get {
+                return CalculateSize (
+                    new DirectoryInfo (Path.Combine (LocalPath, ".git"))
+                );
+            }
+        }
+
+
         public override string [] UnsyncedFilePaths {
             get {
                 List<string> file_paths = new List<string> ();
@@ -137,10 +155,12 @@ namespace SparkleLib {
 
         public override bool SyncUp ()
         {
-            Add ();
+            if (AnyDifferences) {
+                Add ();
 
-            string message = FormatCommitMessage ();
-            Commit (message);
+                string message = FormatCommitMessage ();
+                Commit (message);
+            }
 
             SparkleGit git = new SparkleGit (LocalPath, "push origin master");
             git.Start ();
@@ -228,14 +248,14 @@ namespace SparkleLib {
 
 
         // Removes unneeded objects
-        private void CollectGarbage ()
+/*        private void CollectGarbage ()
         {
             SparkleGit git = new SparkleGit (LocalPath, "gc");
             git.Start ();
             git.WaitForExit ();
 
             SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Garbage collected.");
-        }
+        } */
 
 
         // Commits the made changes
@@ -580,6 +600,10 @@ namespace SparkleLib {
 
             foreach (string added in Added) {
                 file_name = added.Trim ("\"".ToCharArray ());
+
+                if (file_name.EndsWith (".empty"))
+                    file_name = file_name.Substring (0, file_name.Length - 6);
+
                 message += "+ ‘" + file_name + "’" + n;
 
                 count++;
@@ -589,6 +613,10 @@ namespace SparkleLib {
 
             foreach (string modified in Modified) {
                 file_name = modified.Trim ("\"".ToCharArray ());
+
+                if (file_name.EndsWith (".empty"))
+                    file_name = file_name.Substring (0, file_name.Length - 6);
+
                 message += "/ ‘" + file_name + "’" + n;
 
                 count++;
@@ -598,6 +626,10 @@ namespace SparkleLib {
 
             foreach (string removed in Removed) {
                 file_name = removed.Trim ("\"".ToCharArray ());
+
+                if (file_name.EndsWith (".empty"))
+                    file_name = file_name.Substring (0, file_name.Length - 6);
+
                 message += "- ‘" + file_name + "’" + n;
 
                 count++;
@@ -623,6 +655,39 @@ namespace SparkleLib {
         {
             base.CreateInitialChangeSet ();
             SyncUp ();
+        }
+
+
+        // Recursively gets a folder's size in bytes
+        public override double CalculateSize (DirectoryInfo parent)
+        {
+            if (!Directory.Exists (parent.ToString ()))
+                return 0;
+
+            double size = 0;
+
+            // Ignore the temporary 'rebase-apply' and '.tmp' directories. This prevents potential
+            // crashes when files are being queried whilst the files have already been deleted.
+            if (parent.Name.Equals ("rebase-apply") ||
+                parent.Name.Equals (".tmp"))
+                return 0;
+
+            try {
+                foreach (FileInfo file in parent.GetFiles()) {
+                    if (!file.Exists)
+                        return 0;
+
+                    size += file.Length;
+                }
+
+                foreach (DirectoryInfo directory in parent.GetDirectories ())
+                    size += CalculateSize (directory);
+
+            } catch (Exception) {
+                return 0;
+            }
+
+            return size;
         }
     }
 }
