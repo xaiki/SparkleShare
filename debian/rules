@@ -5,7 +5,5 @@ include /usr/share/cli-common/cli.make
 override_dh_auto_configure:
 	dh_auto_configure -- MCS=/usr/bin/mono-csc
 
-override_dh_auto_test:
-
 %:
 	dh $@ 
