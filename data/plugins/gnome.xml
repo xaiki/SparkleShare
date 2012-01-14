@@ -33,10 +33,13 @@
         <description xml:lang="de">Eine freie und einfache Schnittstelle für deinen Computer</description>
         <description xml:lang="es">Una interfaz libre y sencilla para tu ordenador</description>
         <description xml:lang="fr">Une interface facile et gratuite pour votre ordinateur</description>
+        <description xml:lang="it">Un'interfaccia gratuita e facile per il tuo computer</description>
         <description xml:lang="nl">Een gratis en gemakkelijke interface voor uw computer</description>
         <description xml:lang="pl">Wolny i prosty interfejs dla komputerów</description>
+        <description xml:lang="pt_BR">Uma interface fácil e gratuita para o seu computador</description>
         <description xml:lang="ru">Бесплатный и простой интерфейс для вашего компьютера</description>
         <description xml:lang="sv">Ett gratis och enkelt gränssnitt för din dator</description>
+        <description xml:lang="zh_CN">为你的计算机提供一个免费并且简单的接口</description>
         <icon>gnome.png</icon>
         <backend>Git</backend>
     </info>
@@ -50,11 +53,13 @@
       <example xml:lang="de">/Projekt</example>
       <example xml:lang="es">/proyecto</example>
       <example xml:lang="fr">/projet</example>
+      <example xml:lang="it">/progetto</example>
       <example xml:lang="nl">/project</example>
       <example xml:lang="pl">/project</example>
       <example xml:lang="pt_BR">/projeto</example>
       <example xml:lang="ru">/project</example>
       <example xml:lang="sv">/projekt</example>
+      <example xml:lang="zh_CN">/project</example>
     </path>
   </plugin>
 </sparkleshare>

@@ -29,7 +29,7 @@ import gtk
 SPARKLESHARE_PATH = os.path.join (os.path.expanduser ('~'), "SparkleShare")
 
 import gettext
-gettext.bindtextdomain('sparkleshare', '/usr/local/share/locale')
+gettext.bindtextdomain('sparkleshare', '/usr/share/locale')
 gettext.textdomain('sparkleshare')
 _ = gettext.gettext
 

@@ -119,6 +119,8 @@ namespace SparkleShare {
                             break;
     
                         case IconState.Error:
+
+                            Animation.Stop ();
     
                             StateText = _("Not everything is synced");
                             StateMenuItem.Title = StateText;
@@ -240,7 +242,7 @@ namespace SparkleShare {
     
                     RecentEventsMenuItem = new NSMenuItem () {
                         Title = "Open Recent Events",
-                        Enabled = true
+                        Enabled = (Controller.Folders.Length > 0)
                     };
     
                     if (Controller.Folders.Length > 0) {

@@ -90,7 +90,7 @@ namespace SparkleLib {
             
             this.git.StartInfo.RedirectStandardError = true;
             this.git.Start ();
-            
+
             double percentage = 1.0;
             Regex progress_regex = new Regex (@"([0-9]+)%", RegexOptions.Compiled);
             
@@ -163,7 +163,7 @@ namespace SparkleLib {
 
         public override void Stop ()
         {
-            if (this.git != null) {
+            if (this.git != null && !this.git.HasExited) {
                 this.git.Kill ();
                 this.git.Dispose ();
             }
@@ -269,6 +269,7 @@ namespace SparkleLib {
             writer.Close ();
         }
     }
+
 
     public class SparkleGit : Process {
 

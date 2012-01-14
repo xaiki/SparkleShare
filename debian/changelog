@@ -1,3 +1,18 @@
+sparkleshare (0.6.0-1) unstable; urgency=low
+
+  [ Carlos Martín Nieto ]
+  * [e7facf8] Imported Upstream version 0.6.0
+  * [3605835] Don't install README, it's no longer in the tarball
+  * [c33134b] Do run distcheck, it works now
+
+  [ Motiejus Jakštys ]
+  * [db5b74e] Add gawk to build-depends
+
+  [ Chow Loong Jin ]
+  * [62b82a9] Replace Iain Lane with Carlos Martin Nieto in Uploaders
+
+ -- Carlos Martín Nieto <carlos@cmartin.tk>  Sat, 14 Jan 2012 06:02:24 +0800
+
 sparkleshare (0.4.2-1ubuntu1) precise; urgency=low
 
   * Merge with Debian experimental, remaining changes:

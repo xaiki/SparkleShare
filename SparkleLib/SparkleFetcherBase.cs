@@ -22,8 +22,6 @@ using System.Security.AccessControl;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-//using Mono.Unix;
-
 namespace SparkleLib {
 
     // Sets up a fetcher that can get remote folders
@@ -141,28 +139,25 @@ namespace SparkleLib {
 
             string ssh_config_path      = Path.Combine (path, ".ssh");
             string ssh_config_file_path = SparkleHelpers.CombineMore (path, ".ssh", "config");
-            string ssh_config           = Environment.NewLine + "# <SparkleShare>" +
-                                          Environment.NewLine + "Host " + host +
-                                          Environment.NewLine + "\tStrictHostKeyChecking no" +
-                                          Environment.NewLine + "# </SparkleShare>";
+            string ssh_config           = "\n# <SparkleShare>" +
+                                          "\nHost " + host +
+                                          "\n\tStrictHostKeyChecking no" +
+                                          "\n# </SparkleShare>";
 
             if (!Directory.Exists (ssh_config_path))
                 Directory.CreateDirectory (ssh_config_path);
 
             if (File.Exists (ssh_config_file_path)) {
                 TextWriter writer = File.AppendText (ssh_config_file_path);
-                writer.WriteLine (ssh_config);
+                writer.Write (ssh_config);
                 writer.Close ();
 
             } else {
                 File.WriteAllText (ssh_config_file_path, ssh_config);
             }
 
-            //UnixFileSystemInfo file_info = new UnixFileInfo (ssh_config_file_path);
-            //file_info.FileAccessPermissions = (FileAccessPermissions.UserRead |
-            //                                   FileAccessPermissions.UserWrite); TODO
-
-            SparkleHelpers.DebugInfo ("Fetcher", "Disabled host key checking " + host);
+            Chmod644 (ssh_config_file_path);
+            SparkleHelpers.DebugInfo ("Fetcher", "Disabled host key checking for " + host);
         }
         
 
@@ -182,7 +177,7 @@ namespace SparkleLib {
                 string current_ssh_config = File.ReadAllText (ssh_config_file_path);
 
                 current_ssh_config = current_ssh_config.Trim ();
-                string [] lines = current_ssh_config.Split (Environment.NewLine.ToCharArray ());
+                string [] lines = current_ssh_config.Split ('\n');
                 string new_ssh_config = "";
                 bool in_sparkleshare_section = false;
 
@@ -200,7 +195,7 @@ namespace SparkleLib {
                     if (in_sparkleshare_section)
                         continue;
 
-                    new_ssh_config += line + Environment.NewLine;
+                    new_ssh_config += line + "\n"; // do not use Environment.NewLine because file is in unix format
                 }
 
                 if (string.IsNullOrEmpty (new_ssh_config.Trim ())) {
@@ -208,10 +203,7 @@ namespace SparkleLib {
 
                 } else {
                     File.WriteAllText (ssh_config_file_path, new_ssh_config.Trim ());
-
-                    //UnixFileSystemInfo file_info = new UnixFileInfo (ssh_config_file_path);
-                    //file_info.FileAccessPermissions = (FileAccessPermissions.UserRead |
-                    //                                   FileAccessPermissions.UserWrite); TODO
+                    Chmod644 (ssh_config_file_path);
                 }
             }
 
@@ -228,6 +220,16 @@ namespace SparkleLib {
                 return match.Groups [2].Value;
             else
                 return null;
+        }
+        
+        
+        private void Chmod644 (string file_path)
+        {
+            // Hack to be able to set the permissions on a file
+            // that OpenSSH still likes without resorting to Mono.Unix
+            FileInfo file_info   = new FileInfo (file_path);
+            file_info.Attributes = FileAttributes.ReadOnly;
+			file_info.Attributes = FileAttributes.Normal;
         }
     }
 }

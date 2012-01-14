@@ -59,8 +59,7 @@ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
 	$(top_srcdir)/gnome-doc-utils.make
 subdir = help
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/build/m4/gnome-doc-utils.m4 \
-	$(top_srcdir)/build/m4/shave/shave.m4 \
+am__aclocal_m4_deps = $(top_srcdir)/build/m4/shave/shave.m4 \
 	$(top_srcdir)/build/m4/shamrock/expansions.m4 \
 	$(top_srcdir)/build/m4/shamrock/gnome-doc.m4 \
 	$(top_srcdir)/build/m4/shamrock/mono.m4 \
@@ -99,6 +98,8 @@ CYGPATH_W = @CYGPATH_W@
 DATADIRNAME = @DATADIRNAME@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DISTCHECK_CONFIGURE_FLAGS = @DISTCHECK_CONFIGURE_FLAGS@
+DOC_USER_FORMATS = @DOC_USER_FORMATS@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
@@ -118,6 +119,7 @@ GTKSHARP_A11Y_LIBS = @GTKSHARP_A11Y_LIBS@
 GTKSHARP_CFLAGS = @GTKSHARP_CFLAGS@
 GTKSHARP_LIBS = @GTKSHARP_LIBS@
 GUISUBDIRS = @GUISUBDIRS@
+HELP_DIR = @HELP_DIR@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -131,6 +133,7 @@ LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBTOOL = @LIBTOOL@
+LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAINT = @MAINT@
 MAKEFLAGS = @MAKEFLAGS@
@@ -154,17 +157,15 @@ NUNIT_CFLAGS = @NUNIT_CFLAGS@
 NUNIT_LIBS = @NUNIT_LIBS@
 OBJC = @OBJC@
 OBJEXT = @OBJEXT@
+OMF_DIR = @OMF_DIR@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
 PACKAGE_STRING = @PACKAGE_STRING@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
-PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
-PKG_CONFIG_LIBDIR = @PKG_CONFIG_LIBDIR@
-PKG_CONFIG_PATH = @PKG_CONFIG_PATH@
 Q = @Q@
 SED = @SED@
 SET_MAKE = @SET_MAKE@
@@ -291,7 +292,6 @@ top_srcdir = @top_srcdir@
 @HAVE_GNOME_DOC_UTILS_TRUE@_DOC_POFILES = $(if $(DOC_MODULE)$(DOC_ID),					\
 @HAVE_GNOME_DOC_UTILS_TRUE@	$(foreach lc,$(_DOC_REAL_LINGUAS),$(lc)/$(lc).po))
 
-@HAVE_GNOME_DOC_UTILS_TRUE@_DOC_MOFILES = $(patsubst %.po,%.mo,$(_DOC_POFILES))
 @HAVE_GNOME_DOC_UTILS_TRUE@_DOC_LC_MODULES = $(if $(DOC_MODULE),						\
 @HAVE_GNOME_DOC_UTILS_TRUE@	$(foreach lc,$(_DOC_REAL_LINGUAS),$(lc)/$(DOC_MODULE).xml))
 
@@ -648,9 +648,6 @@ uninstall-am: uninstall-local
 @HAVE_GNOME_DOC_UTILS_TRUE@.PHONY: po
 @HAVE_GNOME_DOC_UTILS_TRUE@po: $(_DOC_POFILES)
 
-@HAVE_GNOME_DOC_UTILS_TRUE@.PHONY: mo
-@HAVE_GNOME_DOC_UTILS_TRUE@mo: $(_DOC_MOFILES)
-
 @HAVE_GNOME_DOC_UTILS_TRUE@$(_DOC_POFILES):
 @HAVE_GNOME_DOC_UTILS_TRUE@	@if ! test -d $(dir $@); then \
 @HAVE_GNOME_DOC_UTILS_TRUE@	  echo "mkdir $(dir $@)"; \
@@ -678,23 +675,16 @@ uninstall-am: uninstall-local
 @HAVE_GNOME_DOC_UTILS_TRUE@	    $(_xml2po) -m $(_xml2po_mode) -e -u $(notdir $@) $$docs); \
 @HAVE_GNOME_DOC_UTILS_TRUE@	fi
 
-@HAVE_GNOME_DOC_UTILS_TRUE@$(_DOC_MOFILES): %.mo: %.po
-@HAVE_GNOME_DOC_UTILS_TRUE@	@if ! test -d $(dir $@); then \
-@HAVE_GNOME_DOC_UTILS_TRUE@	  echo "mkdir $(dir $@)"; \
-@HAVE_GNOME_DOC_UTILS_TRUE@	  mkdir "$(dir $@)"; \
-@HAVE_GNOME_DOC_UTILS_TRUE@	fi
-@HAVE_GNOME_DOC_UTILS_TRUE@	msgfmt -o $@ $<
-
 # FIXME: fix the dependancy
 # FIXME: hook xml2po up
-@HAVE_GNOME_DOC_UTILS_TRUE@$(_DOC_LC_DOCS) : $(_DOC_MOFILES)
+@HAVE_GNOME_DOC_UTILS_TRUE@$(_DOC_LC_DOCS) : $(_DOC_POFILES)
 @HAVE_GNOME_DOC_UTILS_TRUE@$(_DOC_LC_DOCS) : $(_DOC_C_DOCS)
 @HAVE_GNOME_DOC_UTILS_TRUE@	if ! test -d $(dir $@); then mkdir $(dir $@); fi
 @HAVE_GNOME_DOC_UTILS_TRUE@	if [ -f "C/$(notdir $@)" ]; then d="../"; else d="$(_DOC_ABS_SRCDIR)/"; fi; \
-@HAVE_GNOME_DOC_UTILS_TRUE@	mo="$(dir $@)$(patsubst %/$(notdir $@),%,$@).mo"; \
-@HAVE_GNOME_DOC_UTILS_TRUE@	if [ -f "$${mo}" ]; then mo="../$${mo}"; else mo="$(_DOC_ABS_SRCDIR)/$${mo}"; fi; \
+@HAVE_GNOME_DOC_UTILS_TRUE@	po="$(dir $@)$(patsubst %/$(notdir $@),%,$@).po"; \
+@HAVE_GNOME_DOC_UTILS_TRUE@	if [ -f "$${po}" ]; then po="../$${po}"; else po="$(_DOC_ABS_SRCDIR)/$${po}"; fi; \
 @HAVE_GNOME_DOC_UTILS_TRUE@	(cd $(dir $@) && \
-@HAVE_GNOME_DOC_UTILS_TRUE@	  $(_xml2po) -m $(_xml2po_mode) -e -t "$${mo}" \
+@HAVE_GNOME_DOC_UTILS_TRUE@	  $(_xml2po) -m $(_xml2po_mode) -e -p "$${po}" \
 @HAVE_GNOME_DOC_UTILS_TRUE@	    "$${d}C/$(notdir $@)" > $(notdir $@).tmp && \
 @HAVE_GNOME_DOC_UTILS_TRUE@	    cp $(notdir $@).tmp $(notdir $@) && rm -f $(notdir $@).tmp)
 @HAVE_GNOME_DOC_UTILS_TRUE@.PHONY: pot
@@ -720,14 +710,12 @@ uninstall-am: uninstall-local
 @HAVE_GNOME_DOC_UTILS_TRUE@clean-doc-dsk: ; rm -f $(_DOC_DSK_DB) $(_DOC_DSK_HTML)
 @HAVE_GNOME_DOC_UTILS_TRUE@clean-doc-lc:
 @HAVE_GNOME_DOC_UTILS_TRUE@	rm -f $(_DOC_LC_DOCS)
-@HAVE_GNOME_DOC_UTILS_TRUE@	rm -f $(_DOC_MOFILES)
 @HAVE_GNOME_DOC_UTILS_TRUE@	@list='$(_DOC_POFILES)'; for po in $$list; do \
 @HAVE_GNOME_DOC_UTILS_TRUE@	  if ! test "$$po" -ef "$(srcdir)/$$po"; then \
 @HAVE_GNOME_DOC_UTILS_TRUE@	    echo "rm -f $$po"; \
 @HAVE_GNOME_DOC_UTILS_TRUE@	    rm -f "$$po"; \
 @HAVE_GNOME_DOC_UTILS_TRUE@	  fi; \
 @HAVE_GNOME_DOC_UTILS_TRUE@	done
-#	.xml2.po.mo cleaning is obsolete as of 0.18.1 and could be removed in 0.20.x
 @HAVE_GNOME_DOC_UTILS_TRUE@	@for lc in C $(_DOC_REAL_LINGUAS); do \
 @HAVE_GNOME_DOC_UTILS_TRUE@	  if test -f "$$lc/.xml2po.mo"; then \
 @HAVE_GNOME_DOC_UTILS_TRUE@	    echo "rm -f $$lc/.xml2po.mo"; \

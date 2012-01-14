@@ -64,7 +64,11 @@ namespace SparkleLib {
         public abstract string CurrentRevision { get; }
         public abstract bool SyncUp ();
         public abstract bool SyncDown ();
+        public abstract double CalculateSize (DirectoryInfo parent);
         public abstract bool HasUnsyncedChanges { get; set; }
+
+        public abstract double Size { get; }
+        public abstract double HistorySize { get; }
 
         public delegate void SyncStatusChangedEventHandler (SyncStatus new_status);
         public event SyncStatusChangedEventHandler SyncStatusChanged;
@@ -116,7 +120,7 @@ namespace SparkleLib {
 
                 // In the unlikely case that we haven't synced up our
                 // changes or the server was down, sync up again
-                if (HasUnsyncedChanges)
+                if (HasUnsyncedChanges && !IsSyncing && this.server_online)
                     SyncUpBase ();
             };
 
@@ -180,7 +184,7 @@ namespace SparkleLib {
         }
 
 
-        public virtual bool CheckForRemoteChanges () // HasRemoteChanges { get; } ?
+        public virtual bool CheckForRemoteChanges () // TODO: HasRemoteChanges { get; }
         {
             return true;
         }
@@ -309,7 +313,7 @@ namespace SparkleLib {
                         this.sizebuffer.RemoveAt (0);
 
                     DirectoryInfo dir_info = new DirectoryInfo (LocalPath);
-                     this.sizebuffer.Add (CalculateFolderSize (dir_info));
+                     this.sizebuffer.Add (CalculateSize (dir_info));
 
                     if (this.sizebuffer.Count >= 4 &&
                         this.sizebuffer [0].Equals (this.sizebuffer [1]) &&
@@ -432,8 +436,9 @@ namespace SparkleLib {
 
                     HasUnsyncedChanges = true;
                     SyncDownBase ();
+                    DisableWatching ();
 
-                    if (SyncUp ()) {
+                    if (this.server_online && SyncUp ()) {
                         HasUnsyncedChanges = false;
 
                         if (SyncStatusChanged != null)
@@ -442,6 +447,8 @@ namespace SparkleLib {
                         this.listener.AnnounceBase (new SparkleAnnouncement (Identifier, CurrentRevision));
 
                     } else {
+                        this.server_online = false;
+
                         if (SyncStatusChanged != null)
                             SyncStatusChanged (SyncStatus.Error);
                     }
@@ -520,7 +527,7 @@ namespace SparkleLib {
 
         public void DisableWatching ()
         {
-            lock (watch_lock) {
+            lock (this.watch_lock) {
                 this.watcher.EnableRaisingEvents = false;
                 this.local_timer.Stop ();
             }
@@ -529,7 +536,7 @@ namespace SparkleLib {
 
         public void EnableWatching ()
         {
-            lock (watch_lock) {
+            lock (this.watch_lock) {
                 this.watcher.EnableRaisingEvents = true;
                 this.local_timer.Start ();
             }
@@ -582,33 +589,6 @@ namespace SparkleLib {
 
             OnFileActivity (args);
             SparkleHelpers.DebugInfo ("Note", "Added note to " + revision);
-        }
-
-
-        // Recursively gets a folder's size in bytes
-        private double CalculateFolderSize (DirectoryInfo parent)
-        {
-            if (!System.IO.Directory.Exists (parent.ToString ()))
-                return 0;
-
-            double size = 0;
-
-            // Ignore the temporary 'rebase-apply' directory. This prevents potential
-            // crashes when files are being queried whilst the files have already been deleted.
-            if (parent.Name.Equals ("rebase-apply"))
-                return 0;
-
-            foreach (FileInfo file in parent.GetFiles ()) {
-                if (!file.Exists)
-                    return 0;
-
-                size += file.Length;
-            }
-
-            foreach (DirectoryInfo directory in parent.GetDirectories())
-                size += CalculateFolderSize (directory);
-
-            return size;
         }
 
 

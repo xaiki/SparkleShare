@@ -2,7 +2,7 @@ Source: sparkleshare
 Section: utils
 Priority: optional
 Maintainer: Debian CLI Applications Team <pkg-cli-apps-team@lists.alioth.debian.org>
-Uploaders: Iain Lane <laney@debian.org>
+Uploaders: Carlos Martín Nieto <carlos@cmartin.tk>
 Build-Depends: cli-common-dev (>= 0.5.7~), debhelper (>= 7.0.50~)
 Build-Depends-Indep: intltool,
                      libappindicator0.1-cil-dev (>= 0.0.7),
