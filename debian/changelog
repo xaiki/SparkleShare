@@ -1,3 +1,14 @@
+sparkleshare (0.6.0-2) unstable; urgency=low
+
+  * Team upload.
+  * Rebuild for CLR 4.0 transition
+  * [52a530b] Re-add python-nautilus build-dependency.
+    This reverts commit f19ee730334cfa69de74f5373c960d8317f1b9a9.
+    (Closes: #645858)
+  * [873e9f1] Drop deprecated cli.make
+
+ -- Chow Loong Jin <hyperair@debian.org>  Thu, 19 Jan 2012 04:19:03 +0800
+
 sparkleshare (0.6.0-1) unstable; urgency=low
 
   [ Carlos Martín Nieto ]
