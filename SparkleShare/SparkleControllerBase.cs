@@ -37,6 +37,9 @@ namespace SparkleShare {
         public List <SparkleRepoBase> Repositories;
         public readonly string SparklePath = SparkleConfig.DefaultConfig.FoldersPath;
 
+        public double ProgressPercentage = 0.0;
+        public string ProgressSpeed      = "";
+
         public event OnQuitWhileSyncingHandler OnQuitWhileSyncing;
         public delegate void OnQuitWhileSyncingHandler ();
 
@@ -108,7 +111,7 @@ namespace SparkleShare {
             if (FirstRun)
                 SparkleConfig.DefaultConfig.SetConfigOption ("notifications", bool.TrueString);
             else
-                AddKey ();
+                ImportPrivateKey ();
 
             // Watch the SparkleShare folder
             FileSystemWatcher watcher = new FileSystemWatcher (SparkleConfig.DefaultConfig.FoldersPath) {
@@ -219,7 +222,7 @@ namespace SparkleShare {
             List<SparkleChangeSet> list = new List<SparkleChangeSet> ();
 
             foreach (SparkleRepoBase repo in Repositories) {
-                List<SparkleChangeSet> change_sets = repo.GetChangeSets (50);
+                List<SparkleChangeSet> change_sets = repo.GetChangeSets (30);
 
                 if (change_sets != null)
                     list.AddRange (change_sets);
@@ -242,7 +245,7 @@ namespace SparkleShare {
             if (name == null)
                 return GetLog ();
 
-            string path = new string [] {SparkleConfig.DefaultConfig.FoldersPath, name}.Combine ();
+            string path = Path.Combine (SparkleConfig.DefaultConfig.FoldersPath, name);
             int log_size = 50;
             
             foreach (SparkleRepoBase repo in Repositories) {
@@ -464,13 +467,17 @@ namespace SparkleShare {
                     today.Month == activity_day.DateTime.Month && 
                     today.Year  == activity_day.DateTime.Year) {
 
-                    day_entry = day_entry_html.Replace ("<!-- $day-entry-header -->", "Today");
+                    day_entry = day_entry_html.Replace ("<!-- $day-entry-header -->",
+                        "<span id='today' name='" + activity_day.DateTime.ToString (_("dddd, MMMM d")) + "'>"
+                        + _("Today") + "</span>");
 
                 } else if (yesterday.Day   == activity_day.DateTime.Day &&
                            yesterday.Month == activity_day.DateTime.Month &&
                            yesterday.Year  == activity_day.DateTime.Year) {
 
-                    day_entry = day_entry_html.Replace ("<!-- $day-entry-header -->", "Yesterday");
+                    day_entry = day_entry_html.Replace ("<!-- $day-entry-header -->",
+                        "<span id='yesterday' name='" + activity_day.DateTime.ToString (_("dddd, MMMM d")) + "'>"
+                        + _("Yesterday") + "</span>");
 
                 } else {
                     if (activity_day.DateTime.Year != DateTime.Now.Year) {
@@ -490,9 +497,13 @@ namespace SparkleShare {
                 event_log += day_entry.Replace ("<!-- $day-entry-content -->", event_entries);
             }
 
-            string html =  event_log_html.Replace ("<!-- $event-log-content -->", event_log)
+
+            int midnight = (int) (DateTime.Today.AddDays (1) - new DateTime (1970, 1, 1)).TotalSeconds;
+
+            string html = event_log_html.Replace ("<!-- $event-log-content -->", event_log)
                 .Replace ("<!-- $username -->", UserName)
-                .Replace ("<!-- $user-avatar-url -->", "file://" + GetAvatar (UserEmail, 48));
+                .Replace ("<!-- $user-avatar-url -->", "file://" + GetAvatar (UserEmail, 48))
+                .Replace ("<!-- $midnight -->", midnight.ToString ());
 
             return html;
         }
@@ -586,11 +597,11 @@ namespace SparkleShare {
             };
 
             repo.SyncStatusChanged += delegate (SyncStatus status) {
-/*                if (status == SyncStatus.SyncUp) {
-                    foreach (string path in repo.UnsyncedFilePaths)
-                        Console.WriteLine (path);
+                if (status == SyncStatus.Idle) {
+                    ProgressPercentage = 0.0;
+                    ProgressSpeed      = "";
                 }
-*/
+
                 if (status == SyncStatus.Idle     ||
                     status == SyncStatus.SyncUp   ||
                     status == SyncStatus.SyncDown ||
@@ -600,11 +611,19 @@ namespace SparkleShare {
                 }
             };
 
+            repo.SyncProgressChanged += delegate (double percentage, string speed) {
+                ProgressPercentage = percentage;
+                ProgressSpeed      = speed;
+
+                UpdateState ();
+            };
+
             repo.ChangesDetected += delegate {
                 UpdateState ();
             };
 
             Repositories.Add (repo);
+            repo.Initialize ();
         }
 
 
@@ -728,16 +747,27 @@ namespace SparkleShare {
         
         // Adds the user's SparkleShare key to the ssh-agent,
         // so all activity is done with this key
-        public void AddKey ()
+        public void ImportPrivateKey ()
         {
-            string keys_path = Path.GetDirectoryName (SparkleConfig.DefaultConfig.FullPath);
+            string keys_path     = Path.GetDirectoryName (SparkleConfig.DefaultConfig.FullPath);
             string key_file_name = "sparkleshare." + UserEmail + ".key";
+            string key_file_path = Path.Combine (keys_path, key_file_name);
+
+            if (!File.Exists (key_file_path)) {
+                foreach (string file_name in Directory.GetFiles (keys_path)) {
+                    if (file_name.StartsWith ("sparkleshare") &&
+                        file_name.EndsWith (".key")) {
+
+                        key_file_path = Path.Combine (keys_path, file_name);
+                    }
+                }
+            }
 
             Process process = new Process ();
             process.StartInfo.RedirectStandardOutput = true;
             process.StartInfo.UseShellExecute        = false;
             process.StartInfo.FileName               = "ssh-add";
-            process.StartInfo.Arguments              = "\"" + Path.Combine (keys_path, key_file_name) + "\"";
+            process.StartInfo.Arguments              = "\"" + key_file_path + "\"";
 
             process.Start ();
             process.WaitForExit ();
@@ -943,8 +973,10 @@ namespace SparkleShare {
             remote_folder = remote_folder.Trim ();
 
             string tmp_path = SparkleConfig.DefaultConfig.TmpPath;
-            if (!Directory.Exists (tmp_path))
+            if (!Directory.Exists (tmp_path)) {
                 Directory.CreateDirectory (tmp_path);
+                File.SetAttributes (tmp_path, File.GetAttributes (tmp_path) | FileAttributes.Hidden);
+            }
 
             // Strip the '.git' from the name
             string canonical_name = Path.GetFileNameWithoutExtension (remote_folder);
