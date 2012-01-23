@@ -20,11 +20,11 @@ namespace SparkleLib {
 
 	public class Defines {
 
-		public const string VERSION         = "0.6.0";
-		public const string LOCALE_DIR      = "/usr/share/locale";
-		public const string DATAROOTDIR     = "/usr/share";
+		public const string VERSION         = "0.8.0";
+		public const string LOCALE_DIR      = "/usr/local/share/locale";
+		public const string DATAROOTDIR     = "/usr/local/share";
 		public const string GETTEXT_PACKAGE = "sparkleshare";
-		public const string PREFIX          = "/usr";
+		public const string PREFIX          = "/usr/local";
 	}
 }
 

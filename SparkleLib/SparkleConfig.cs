@@ -21,25 +21,30 @@ using System.Collections.Generic;
 using System.Xml;
 using System.Security.Principal;
 
-//using Mono.Unix;
-
 namespace SparkleLib {
 
     public class SparkleConfig : XmlDocument {
 
-        public static string ConfigPath = Path.Combine (
+        private static string default_config_path = Path.Combine (
             Environment.GetFolderPath (Environment.SpecialFolder.ApplicationData),
                 "sparkleshare");
 
-        public static SparkleConfig DefaultConfig = new SparkleConfig (ConfigPath, "config.xml");
+        public static SparkleConfig DefaultConfig = new SparkleConfig (default_config_path, "config.xml");
+        public static bool DebugMode = true;
+
+
         public string FullPath;
+        public string TmpPath;
+        public string LogFilePath;
 
         public string HomePath {
             get {
-		        return Environment.GetFolderPath (Environment.SpecialFolder.Personal);
-		    }
+                if (GetConfigOption ("home_path") != null)
+                    return GetConfigOption ("home_path");
+                else
+                    return Environment.GetFolderPath (Environment.SpecialFolder.Personal);
+            }
         }
-
 
         public string FoldersPath {
             get {
@@ -50,27 +55,26 @@ namespace SparkleLib {
             }
         }
 
-        public string TmpPath {
-            get {
-                return Path.Combine (FoldersPath, ".tmp");
-            }
-        }
-
-
         public SparkleConfig (string config_path, string config_file_name)
         {
-            FullPath = System.IO.Path.Combine (config_path, config_file_name);
+            FullPath    = Path.Combine (config_path, config_file_name);
+            LogFilePath = Path.Combine (config_path, "debug.log");
 
-            if (!Directory.Exists (config_path)) {
+            if (File.Exists (LogFilePath)) {
+                try {
+                    File.Delete (LogFilePath);
+
+                } catch (Exception) {
+                    // Don't delete the debug.log if 'tail' is reading it
+                }
+            }
+
+            if (!Directory.Exists (config_path))
                 Directory.CreateDirectory (config_path);
-                SparkleHelpers.DebugInfo ("Config", "Created \"" + config_path + "\"");
-            }
 
-            string icons_path = System.IO.Path.Combine (config_path, "icons");
-            if (!Directory.Exists (icons_path)) {
+            string icons_path = Path.Combine (config_path, "icons");
+            if (!Directory.Exists (icons_path))
                 Directory.CreateDirectory (icons_path);
-                SparkleHelpers.DebugInfo ("Config", "Created \"" + icons_path + "\"");
-            }
 
             try {
               Load (FullPath);
@@ -95,9 +99,8 @@ namespace SparkleLib {
 
             } finally {
                 Load (FullPath);
+                TmpPath = Path.Combine (FoldersPath, ".tmp");
             }
-
-            ConfigureSSH ();
         }
 
 
@@ -130,8 +133,6 @@ namespace SparkleLib {
                 "    <email>Unknown</email>" + n +
                 "  </user>" + n +
                 "</sparkleshare>");
-
-            SparkleHelpers.DebugInfo ("Config", "Created \"" + FullPath + "\"");
         }
 
 
@@ -156,12 +157,17 @@ namespace SparkleLib {
                 email_node.InnerText = user.Email;
 
                 this.Save ();
+
+                // ConfigureSSH ();
             }
         }
 
-
+/*
         private void ConfigureSSH ()
         {
+            if (User.Email.Equals ("Unknown"))
+                return;
+
             string path = Environment.GetFolderPath (Environment.SpecialFolder.Personal);
 
             if (!(SparkleBackend.Platform == PlatformID.Unix ||
@@ -198,13 +204,11 @@ namespace SparkleLib {
                 File.WriteAllText (ssh_config_file_path, ssh_config);
             }
 
-            //UnixFileSystemInfo file_info = new UnixFileInfo (ssh_config_file_path);
-            //file_info.FileAccessPermissions = (FileAccessPermissions.UserRead |
-            //                                   FileAccessPermissions.UserWrite); TODO
+            Chmod644 (ssh_config_file_path);
 
             SparkleHelpers.DebugInfo ("Config", "Added key to " + ssh_config_file_path);
         }
-
+*/
 
         public List<string> Folders {
             get {
@@ -401,6 +405,16 @@ namespace SparkleLib {
 
             this.Save (FullPath);
             SparkleHelpers.DebugInfo ("Config", "Updated \"" + FullPath + "\"");
+        }
+
+
+        private void Chmod644 (string file_path)
+        {
+            // Hack to be able to set the permissions on a file
+            // that OpenSSH still likes without resorting to Mono.Unix
+            FileInfo file_info   = new FileInfo (file_path);
+            file_info.Attributes = FileAttributes.ReadOnly;
+            file_info.Attributes = FileAttributes.Normal;
         }
     }
 
