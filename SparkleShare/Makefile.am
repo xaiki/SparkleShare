@@ -1,5 +1,5 @@
 SUBDIRS =	\
-	Nautilus \
+	Linux/Nautilus \
 	Mac
 
 ASSEMBLY = SparkleShare
@@ -13,33 +13,31 @@ endif
 
 SOURCES =  \
 	Program.cs \
-	SparkleAbout.cs \
+	Linux/SparkleAbout.cs \
+	Linux/SparkleBubbles.cs \
+	Linux/SparkleController.cs \
+	Linux/SparkleEntry.cs \
+	Linux/SparkleEventLog.cs \
+	Linux/SparkleSetup.cs \
+	Linux/SparkleSetupWindow.cs \
+	Linux/SparkleStatusIcon.cs \
+	Linux/SparkleSpinner.cs \
+	Linux/SparkleUI.cs \
+	Linux/SparkleUIHelpers.cs \
 	SparkleAboutController.cs \
-	SparkleBubbles.cs \
 	SparkleBubblesController.cs \
-	SparkleController.cs \
 	SparkleControllerBase.cs \
-	SparkleEntry.cs \
-	SparkleEventLog.cs \
 	SparkleEventLogController.cs \
 	SparkleExtensions.cs \
 	SparkleOptions.cs \
 	SparkleInvite.cs \
 	SparklePlugin.cs \
-	SparkleSetup.cs \
 	SparkleSetupController.cs \
-	SparkleSetupWindow.cs \
-	SparkleSpinner.cs \
-	SparkleStatusIcon.cs \
-	SparkleStatusIconController.cs \
-	SparkleUI.cs \
-	SparkleUIHelpers.cs
+	SparkleStatusIconController.cs
 
 include $(top_srcdir)/build/build.mk
 
 bin_SCRIPTS = sparkleshare
 
-dist_man_MANS = $(top_srcdir)/man/sparkleshare.1
-
 Applicationsdir = $(datadir)/applications
-dist_Applications_DATA = sparkleshare.desktop
+dist_Applications_DATA = Linux/sparkleshare.desktop
