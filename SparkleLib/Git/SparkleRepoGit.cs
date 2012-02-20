@@ -17,17 +17,16 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Text.RegularExpressions;
-using System.Xml;
 
 namespace SparkleLib {
 
     public class SparkleRepoGit : SparkleRepoBase {
 
-        public SparkleRepoGit (string path, SparkleBackend backend) :
-            base (path, backend) { }
+        public SparkleRepoGit (string path) : base (path)
+        {
+        }
 
 
         private string identifier = null;
@@ -62,7 +61,7 @@ namespace SparkleLib {
         public override List<string> ExcludePaths {
             get {
                 List<string> rules = new List<string> ();
-                rules.Add (Path.DirectorySeparatorChar + ".git");
+                rules.Add (".git");
 
                 return rules;
             }
@@ -71,7 +70,7 @@ namespace SparkleLib {
 
         public override double Size {
             get {
-                string file_path = Path.Combine (LocalPath, ".git", "repo_size");
+                string file_path = new string [] {LocalPath, ".git", "repo_size"}.Combine ();
 
                 try {
                     return double.Parse (File.ReadAllText (file_path));
@@ -85,7 +84,7 @@ namespace SparkleLib {
 
         public override double HistorySize {
             get {
-                string file_path = Path.Combine (LocalPath, ".git", "repo_history_size");
+                string file_path = new string [] {LocalPath, ".git", "repo_history_size"}.Combine ();
 
                 try {
                     return double.Parse (File.ReadAllText (file_path));
@@ -97,16 +96,16 @@ namespace SparkleLib {
         }
 
 
-        private void CalculateSizes ()
+        private void UpdateSizes ()
         {
-            double size = CalculateSize (
+            double size = CalculateSizes (
                 new DirectoryInfo (LocalPath));
 
-            double history_size = CalculateSize (
+            double history_size = CalculateSizes (
                 new DirectoryInfo (Path.Combine (LocalPath, ".git")));
 
-            string size_file_path = Path.Combine (LocalPath, ".git", "repo_size");
-            string history_size_file_path = Path.Combine (LocalPath, ".git", "repo_history_size");
+            string size_file_path = new string [] {LocalPath, ".git", "repo_size"}.Combine ();
+            string history_size_file_path = new string [] {LocalPath, ".git", "repo_history_size"}.Combine ();
 
             File.WriteAllText (size_file_path, size.ToString ());
             File.WriteAllText (history_size_file_path, history_size.ToString ());
@@ -166,32 +165,36 @@ namespace SparkleLib {
         }
 
 
-        public override bool CheckForRemoteChanges ()
+        public override bool HasRemoteChanges
         {
-            SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Checking for remote changes...");
-            SparkleGit git = new SparkleGit (LocalPath, "ls-remote origin master");
+            get {
+                SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Checking for remote changes...");
+                SparkleGit git = new SparkleGit (LocalPath, "ls-remote " + Url + " master");
+    
+                git.Start ();
+                git.WaitForExit ();
+    
+                if (git.ExitCode != 0)
+                    return false;
+    
+                string remote_revision = git.StandardOutput.ReadToEnd ().TrimEnd ();
+    
+                if (!remote_revision.StartsWith (CurrentRevision)) {
+                    SparkleHelpers.DebugInfo ("Git",
+                        "[" + Name + "] Remote changes found. (" + remote_revision + ")");
 
-            git.Start ();
-            git.WaitForExit ();
+                    return true;
 
-            if (git.ExitCode != 0)
-                return false;
-
-            string remote_revision = git.StandardOutput.ReadToEnd ().TrimEnd ();
-
-            if (!remote_revision.StartsWith (CurrentRevision)) {
-                SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Remote changes found. (" + remote_revision + ")");
-                return true;
-
-            } else {
-                return false;
+                } else {
+                    return false;
+                }
             }
         }
 
 
         public override bool SyncUp ()
         {
-            if (AnyDifferences) {
+            if (HasLocalChanges) {
                 Add ();
 
                 string message = FormatCommitMessage ();
@@ -201,7 +204,7 @@ namespace SparkleLib {
 
             SparkleGit git = new SparkleGit (LocalPath,
                 "push --progress " + // Redirects progress stats to standarderror
-                "origin master");
+                Url + " master");
 
             git.StartInfo.RedirectStandardError = true;
             git.Start ();
@@ -241,13 +244,13 @@ namespace SparkleLib {
 
                 if (number >= percentage) {
                     percentage = number;
-                    base.OnSyncProgressChanged (percentage, speed);
+                    base.OnProgressChanged (percentage, speed);
                 }
             }
 
             git.WaitForExit ();
 
-            CalculateSizes ();
+            UpdateSizes ();
 
             if (git.ExitCode == 0)
                 return true;
@@ -258,7 +261,7 @@ namespace SparkleLib {
 
         public override bool SyncDown ()
         {
-            SparkleGit git = new SparkleGit (LocalPath, "fetch --progress");
+            SparkleGit git = new SparkleGit (LocalPath, "fetch --progress " + Url);
 
             git.StartInfo.RedirectStandardError = true;
             git.Start ();
@@ -298,13 +301,13 @@ namespace SparkleLib {
 
                 if (number >= percentage) {
                     percentage = number;
-                    base.OnSyncProgressChanged (percentage, speed);
+                    base.OnProgressChanged (percentage, speed);
                 }
             }
 
             git.WaitForExit ();
 
-            CalculateSizes ();
+            UpdateSizes ();
 
             if (git.ExitCode == 0) {
                 Rebase ();
@@ -316,7 +319,7 @@ namespace SparkleLib {
         }
 
 
-        public override bool AnyDifferences {
+        public override bool HasLocalChanges {
             get {
                 PrepareDirectories (LocalPath);
 
@@ -411,7 +414,7 @@ namespace SparkleLib {
         {
             DisableWatching ();
 
-            if (AnyDifferences) {
+            if (HasLocalChanges) {
                 Add ();
 
                 string commit_message = FormatCommitMessage ();
@@ -426,7 +429,7 @@ namespace SparkleLib {
             if (git.ExitCode != 0) {
                 SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Conflict detected. Trying to get out...");
 
-                while (AnyDifferences)
+                while (HasLocalChanges)
                     ResolveConflict ();
 
                 SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Conflict resolved.");
@@ -623,11 +626,12 @@ namespace SparkleLib {
                 if (match.Success) {
                     SparkleChangeSet change_set = new SparkleChangeSet ();
 
-                    change_set.Folder        = Name;
-                    change_set.Revision      = match.Groups [1].Value;
-                    change_set.User.Name     = match.Groups [2].Value;
-                    change_set.User.Email    = match.Groups [3].Value;
-                    change_set.IsMagical     = is_merge_commit;
+                    change_set.Folder     = Name;
+                    change_set.Revision   = match.Groups [1].Value;
+                    change_set.User.Name  = match.Groups [2].Value;
+                    change_set.User.Email = match.Groups [3].Value;
+                    change_set.IsMagical  = is_merge_commit;
+                    change_set.Url        = Url;
 
                     change_set.Timestamp = new DateTime (int.Parse (match.Groups [4].Value),
                         int.Parse (match.Groups [5].Value), int.Parse (match.Groups [6].Value),
@@ -651,7 +655,8 @@ namespace SparkleLib {
                             string to_file_path;
 
                             if (file_path.EndsWith (".empty"))
-                                file_path = file_path.Substring (0, file_path.Length - ".empty".Length);
+                                file_path = file_path.Substring (0,
+                                    file_path.Length - ".empty".Length);
 
                             if (change_type.Equals ("A") && !file_path.Contains (".notes")) {
                                 change_set.Added.Add (file_path);
@@ -666,6 +671,14 @@ namespace SparkleLib {
                                 int tab_pos  = entry_line.LastIndexOf ("\t");
                                 file_path    = entry_line.Substring (42, tab_pos - 42);
                                 to_file_path = entry_line.Substring (tab_pos + 1);
+
+                                if (file_path.EndsWith (".empty"))
+                                    file_path = file_path.Substring (0,
+                                        file_path.Length - ".empty".Length);
+
+                                if (to_file_path.EndsWith (".empty"))
+                                    to_file_path = to_file_path.Substring (0,
+                                        to_file_path.Length - ".empty".Length);
 
                                 change_set.MovedFrom.Add (file_path);
                                 change_set.MovedTo.Add (to_file_path);
@@ -805,34 +818,15 @@ namespace SparkleLib {
         }
 
 
-        public override bool UsesNotificationCenter
-        {
-            get {
-                string file_path = SparkleHelpers.CombineMore (LocalPath, ".git", "disable_notification_center");
-                return !File.Exists (file_path);
-            }
-        }
-
-
-        public override void CreateInitialChangeSet ()
-        {
-            base.CreateInitialChangeSet ();
-            SyncUp ();
-        }
-
-
         // Recursively gets a folder's size in bytes
-        public override double CalculateSize (DirectoryInfo parent)
+        private double CalculateSizes (DirectoryInfo parent)
         {
             if (!Directory.Exists (parent.ToString ()))
                 return 0;
 
             double size = 0;
 
-            // Ignore the temporary 'rebase-apply' and '.tmp' directories. This prevents potential
-            // crashes when files are being queried whilst the files have already been deleted.
-            if (parent.Name.Equals ("rebase-apply") ||
-                parent.Name.Equals (".tmp"))
+            if (parent.Name.Equals ("rebase-apply"))
                 return 0;
 
             try {
@@ -844,7 +838,7 @@ namespace SparkleLib {
                 }
 
                 foreach (DirectoryInfo directory in parent.GetDirectories ())
-                    size += CalculateSize (directory);
+                    size += CalculateSizes (directory);
 
             } catch (Exception) {
                 return 0;
