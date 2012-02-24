@@ -60,8 +60,7 @@ namespace SparkleShare {
             DeleteEvent += Close;
 
             this.size_label = new Label () {
-                Markup = "<b>Size:</b> " + Controller.Size + "   " +
-                         "<b>History:</b> " + Controller.HistorySize
+                Markup = "<b>Size:</b> …   <b>History:</b> …"
             };
 
             VBox layout_vertical = new VBox (false, 0);
@@ -175,8 +174,9 @@ namespace SparkleShare {
                 TreeIter iter;
                 this.combo_box.GetActiveIter (out iter);
                 string selection = (string) this.combo_box.Model.GetValue (iter, 0);
+                TreePath path    = this.combo_box.Model.GetPath (iter);
 
-                if (selection.Equals (_("All Folders")))
+                if (path.Indices [0] == 0)
                     Controller.SelectedFolder = null;
                 else
                     Controller.SelectedFolder = selection;

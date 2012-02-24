@@ -54,6 +54,9 @@ namespace SparkleShare {
                 if (ContentLoadingEvent != null)
                     ContentLoadingEvent ();
 
+                if (UpdateSizeInfoEvent != null)
+                    UpdateSizeInfoEvent ("…", "…");
+
                 Stopwatch watch = new Stopwatch ();
                 watch.Start ();
 
@@ -63,8 +66,8 @@ namespace SparkleShare {
 
                     // A short delay is less annoying than
                     // a flashing window
-                    if (watch.ElapsedMilliseconds < 500)
-                        Thread.Sleep (500 - (int) watch.ElapsedMilliseconds);
+                    if (watch.ElapsedMilliseconds < 750)
+                        Thread.Sleep (750 - (int) watch.ElapsedMilliseconds);
 
                     if (UpdateContentEvent != null)
                         UpdateContentEvent (html);
@@ -80,7 +83,13 @@ namespace SparkleShare {
         public string HTML {
             get {
                 List<SparkleChangeSet> change_sets = Program.Controller.GetLog (this.selected_folder);
-                return Program.Controller.GetHTMLLog (change_sets);
+
+                string html = Program.Controller.GetHTMLLog (change_sets);
+
+                if (UpdateSizeInfoEvent != null)
+                    UpdateSizeInfoEvent (Size, HistorySize);
+
+                return html;
             }
         }
 
@@ -97,11 +106,18 @@ namespace SparkleShare {
                 foreach (SparkleRepoBase repo in Program.Controller.Repositories) {
                     if (this.selected_folder == null)
                         size += repo.Size;
-                    else if (this.selected_folder.Equals (repo.Name))
-                        return Program.Controller.FormatSize (repo.Size);
+                    else if (this.selected_folder.Equals (repo.Name)) {
+                        if (repo.Size == 0)
+                            return "???";
+                        else
+                            return Program.Controller.FormatSize (repo.Size);
+                    }
                 }
 
-                return Program.Controller.FormatSize (size);
+                if (size == 0)
+                    return "???";
+                else
+                    return Program.Controller.FormatSize (size);
             }
         }
 
@@ -112,11 +128,18 @@ namespace SparkleShare {
                 foreach (SparkleRepoBase repo in Program.Controller.Repositories) {
                     if (this.selected_folder == null)
                         size += repo.HistorySize;
-                    else if (this.selected_folder.Equals (repo.Name))
-                        return Program.Controller.FormatSize (repo.HistorySize);
+                    else if (this.selected_folder.Equals (repo.Name)) {
+                        if (repo.HistorySize == 0)
+                            return "???";
+                        else
+                            return Program.Controller.FormatSize (repo.HistorySize);
+                    }
                 }
 
-                return Program.Controller.FormatSize (size);
+                if (size == 0)
+                    return "???";
+                else
+                    return Program.Controller.FormatSize (size);
             }
         }
 

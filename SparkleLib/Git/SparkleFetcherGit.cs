@@ -31,53 +31,56 @@ namespace SparkleLib {
         public SparkleFetcherGit (string server, string remote_folder, string target_folder) :
             base (server, remote_folder, target_folder)
         {
-            remote_folder = remote_folder.Trim ("/".ToCharArray ());
+            if (server.EndsWith ("/"))
+                server = server.Substring (0, server.Length - 1);
 
-            if (server.StartsWith ("http")) {
-                base.target_folder = target_folder;
-                base.remote_url    = server;
-                return;
+            if (!remote_folder.StartsWith ("/"))
+                remote_folder = "/" + remote_folder;
+
+
+            Uri uri;
+
+            try {
+                uri = new Uri (server + remote_folder);
+
+            } catch (UriFormatException) {
+                uri = new Uri ("ssh://" + server + remote_folder);
             }
 
-            // Gitorious formatting
-            if (server.Contains ("gitorious.org")) {
-                server = "ssh://git@gitorious.org";
 
-                if (!remote_folder.EndsWith (".git")) {
+            if (!uri.Scheme.Equals ("ssh") &&
+                !uri.Scheme.Equals ("git")) {
 
-                    if (!remote_folder.Contains ("/"))
-                        remote_folder = remote_folder + "/" + remote_folder;
+                uri = new Uri ("ssh://" + uri);
+            }
 
-                    remote_folder += ".git";
+
+            if (uri.Host.Equals ("gitorious.org")) {
+                if (!uri.AbsolutePath.Equals ("/") &&
+                    !uri.AbsolutePath.EndsWith (".git")) {
+
+                    uri = new Uri ("ssh://git@gitorious.org" + uri.AbsolutePath + ".git");
+
+                } else {
+                    uri = new Uri ("ssh://git@gitorious.org" + uri.AbsolutePath);
                 }
 
-            } else if (server.Contains ("github.com")) {
-                server = "ssh://git@github.com";
+            } else if (uri.Host.Equals ("github.com")) {
+                uri = new Uri ("ssh://git@github.com" + uri.AbsolutePath);
 
-            } else if (server.Contains ("gnome.org")) {
-                server = "ssh://git@gnome.org/git";
+            } else if (uri.Host.Equals ("gnome.org")) {
+                uri = new Uri ("ssh://git@gnome.org/git" + uri.AbsolutePath);
 
             } else {
-                server = server.TrimEnd ("/".ToCharArray ());
-
-                string protocol = "ssh://";
-
-                if (server.StartsWith ("ssh://"))
-                    server   = server.Substring (6);
-
-                if (server.StartsWith ("git://")) {
-                    server = server.Substring (6);
-                    protocol = "git://";
+                if (string.IsNullOrEmpty (uri.UserInfo)) {
+                    uri = new Uri (uri.Scheme + "://git@" + uri.Host + ":" + uri.Port + uri.AbsolutePath);
+                    uri = new Uri (uri.ToString ().Replace (":-1", ""));
                 }
-
-                if (!server.Contains ("@"))
-                    server = "git@" + server;
-
-                server = protocol + server;
             }
 
-            base.target_folder = target_folder;
-            base.remote_url    = server + "/" + remote_folder;
+
+            TargetFolder = target_folder;
+            RemoteUrl    = uri.ToString ();
         }
 
 
@@ -86,14 +89,17 @@ namespace SparkleLib {
             this.git = new SparkleGit (SparkleConfig.DefaultConfig.TmpPath,
                 "clone " +
                 "--progress " + // Redirects progress stats to standarderror
-                "\"" + base.remote_url + "\" " + "\"" + base.target_folder + "\"");
+                "\"" + RemoteUrl + "\" " + "\"" + TargetFolder + "\"");
             
             this.git.StartInfo.RedirectStandardError = true;
             this.git.Start ();
 
             double percentage = 1.0;
             Regex progress_regex = new Regex (@"([0-9]+)%", RegexOptions.Compiled);
-            
+
+            DateTime last_change     = DateTime.Now;
+            TimeSpan change_interval = new TimeSpan (0, 0, 0, 1);
+
             while (!this.git.StandardError.EndOfStream) {
                 string line = this.git.StandardError.ReadLine ();
                 Match match = progress_regex.Match (line);
@@ -107,7 +113,7 @@ namespace SparkleLib {
                     // the "Receiving objects" stage which we count as the last 80%
                     if (line.Contains ("|"))
                         // "Receiving objects" stage
-                        number = (number / 100 * 75 + 20);    
+                        number = (number / 100 * 80 + 20);
                     else
                         // "Compressing objects" stage
                         number = (number / 100 * 20);
@@ -115,51 +121,53 @@ namespace SparkleLib {
                 
                 if (number >= percentage) {
                     percentage = number;
-                    
-                    // FIXME: for some reason it doesn't go above 95%
-                    base.OnProgressChanged (percentage);
+
+                    if (DateTime.Compare (last_change, DateTime.Now.Subtract (change_interval)) < 0) {
+                        base.OnProgressChanged (percentage);
+                        last_change = DateTime.Now;
+                    }
                 }
-                
-                System.Threading.Thread.Sleep (100);        
             }
             
             this.git.WaitForExit ();
-
             SparkleHelpers.DebugInfo ("Git", "Exit code " + this.git.ExitCode.ToString ());
+
 
             if (this.git.ExitCode != 0) {
                 return false;
+
             } else {
                 InstallConfiguration ();
                 InstallExcludeRules ();
+                AddWarnings ();
                 return true;
             }
         }
 
 
-        public override string [] Warnings {
-            get {
-                SparkleGit git = new SparkleGit (SparkleConfig.DefaultConfig.TmpPath,
-                    "config --global core.excludesfile");
+        private void AddWarnings ()
+        {
+            SparkleGit git = new SparkleGit (SparkleConfig.DefaultConfig.TmpPath,
+                "config --global core.excludesfile");
 
-                git.Start ();
+            git.Start ();
 
-                // Reading the standard output HAS to go before
-                // WaitForExit, or it will hang forever on output > 4096 bytes
-                string output = git.StandardOutput.ReadToEnd ().Trim ();
-                git.WaitForExit ();
+            // Reading the standard output HAS to go before
+            // WaitForExit, or it will hang forever on output > 4096 bytes
+            string output = git.StandardOutput.ReadToEnd ().Trim ();
+            git.WaitForExit ();
 
-                if (string.IsNullOrEmpty (output)) {
-                    return null;
+            if (string.IsNullOrEmpty (output)) {
+                return;
 
-                } else {
-                    return new string [] {
-                        string.Format ("You seem to have configured a system ‘gitignore’ file. " +
-                                       "This may interfere with SparkleShare.\n({0})", output)
-                    };
-                }
+            } else {
+                Warnings = new string [] {
+                    string.Format ("You seem to have configured a system ‘gitignore’ file. " +
+                                   "This may interfere with SparkleShare.\n({0})", output)
+                };
             }
         }
+
 
         public override void Stop ()
         {
@@ -168,7 +176,7 @@ namespace SparkleLib {
                 this.git.Dispose ();
             }
 
-            base.Stop ();
+            Dispose ();
         }
 
 
@@ -176,14 +184,22 @@ namespace SparkleLib {
         // the newly cloned repository
         private void InstallConfiguration ()
         {
-            string repo_config_file_path = SparkleHelpers.CombineMore (base.target_folder, ".git", "config");
+            string repo_config_file_path = SparkleHelpers.CombineMore (TargetFolder, ".git", "config");
             string config = String.Join (Environment.NewLine, File.ReadAllLines (repo_config_file_path));
 
             string n = Environment.NewLine;
 
-            // Show special characters in the logs
             config = config.Replace ("[core]" + n,
-                "[core]" + n + "quotepath = false" + n);
+                "[core]" + n + "\tquotepath = false" + n + // Show special characters in the logs
+                "\tpackedGitLimit = 128m" + n +
+                "\tpackedGitWindowSize = 128m" + n);
+
+            config = config.Replace ("[remote \"origin\"]" + n,
+                "[pack]" + n +
+                "\tdeltaCacheSize = 128m" + n +
+                "\tpackSizeLimit = 128m" + n +
+                "\twindowMemory = 128m" + n +
+                "[remote \"origin\"]" + n);
 
             // Be case sensitive explicitly to work on Mac
             config = config.Replace ("ignorecase = true", "ignorecase = false");
@@ -203,91 +219,112 @@ namespace SparkleLib {
         // Add a .gitignore file to the repo
         private void InstallExcludeRules ()
         {
-            DirectoryInfo info = Directory.CreateDirectory (SparkleHelpers.CombineMore (
-                this.target_folder, ".git", "info"));
+            DirectoryInfo info = Directory.CreateDirectory (
+                SparkleHelpers.CombineMore (TargetFolder, ".git", "info"));
 
-            string exlude_rules_file_path = Path.Combine (info.FullName, "exclude");
-            TextWriter writer = new StreamWriter (exlude_rules_file_path);
+            // File that lists the files we want git to ignore
+            string exclude_rules_file_path = Path.Combine (info.FullName, "exclude");
+            TextWriter writer = new StreamWriter (exclude_rules_file_path);
 
-                // gedit and emacs
-                writer.WriteLine ("*~");
-
-                // Firefox and Chromium temporary download files
-                writer.WriteLine ("*.part");
-                writer.WriteLine ("*.crdownload");
-
-                // vi(m)
-                writer.WriteLine (".*.sw[a-z]");
-                writer.WriteLine ("*.un~");
-                writer.WriteLine ("*.swp");
-                writer.WriteLine ("*.swo");
-                
-                // KDE
-                writer.WriteLine (".directory");
-    
-                // Mac OSX
-                writer.WriteLine (".DS_Store");
-                writer.WriteLine ("Icon?");
-                writer.WriteLine ("._*");
-                writer.WriteLine (".Spotlight-V100");
-                writer.WriteLine (".Trashes");
-
-                // Mac OSX
-                writer.WriteLine ("*(Autosaved).graffle");
-            
-                // Windows
-                writer.WriteLine ("Thumbs.db");
-                writer.WriteLine ("Desktop.ini");
-
-                // MS Office
-                writer.WriteLine ("~*.tmp");
-                writer.WriteLine ("~*.TMP");
-                writer.WriteLine ("*~*.tmp");
-                writer.WriteLine ("*~*.TMP");
-                writer.WriteLine ("~*.ppt");
-                writer.WriteLine ("~*.pptx");
-                writer.WriteLine ("~*.PPT");
-                writer.WriteLine ("~*.PPTX");
-                writer.WriteLine ("~*.xls");
-                writer.WriteLine ("~*.xlsx");
-                writer.WriteLine ("~*.XLS");
-                writer.WriteLine ("~*.XLSX");
-                writer.WriteLine ("~*.doc");
-                writer.WriteLine ("~*.docx");
-                writer.WriteLine ("~*.DOC");
-                writer.WriteLine ("~*.DOCX");
-
-                // CVS
-                writer.WriteLine ("*/CVS/*");
-                writer.WriteLine (".cvsignore");
-                writer.WriteLine ("*/.cvsignore");
-                
-                // Subversion
-                writer.WriteLine ("/.svn/*");
-                writer.WriteLine ("*/.svn/*");
+            foreach (string exclude_rule in ExcludeRules)
+                writer.WriteLine (exclude_rule);
 
             writer.Close ();
-        }
-    }
 
 
-    public class SparkleGit : Process {
+            // File that lists the files we want don't want git to compress.
+            // Not compressing the already compressed files saves us memory
+            // usage and increases speed
+            string no_compression_rules_file_path = Path.Combine (info.FullName, "attributes");
+            writer = new StreamWriter (no_compression_rules_file_path);
 
-        public SparkleGit (string path, string args) : base ()
-        {
-            EnableRaisingEvents              = true;
-            StartInfo.FileName               = SparkleBackend.DefaultBackend.Path;
-            StartInfo.Arguments              = args;
-            StartInfo.RedirectStandardOutput = true;
-            StartInfo.UseShellExecute        = false;
-            StartInfo.WorkingDirectory       = path;
-        }
+                // Images
+                writer.WriteLine ("*.jpg -delta");
+                writer.WriteLine ("*.jpeg -delta");
+                writer.WriteLine ("*.JPG -delta");
+                writer.WriteLine ("*.JPEG -delta");
 
+                writer.WriteLine ("*.png -delta");
+                writer.WriteLine ("*.PNG -delta");
 
-        new public void Start ()
-        {
-            SparkleHelpers.DebugInfo ("Cmd", StartInfo.FileName + " " + StartInfo.Arguments);
-            base.Start ();
+                writer.WriteLine ("*.tiff -delta");
+                writer.WriteLine ("*.TIFF -delta");
+
+                // Audio
+                writer.WriteLine ("*.flac -delta");
+                writer.WriteLine ("*.FLAC -delta");
+
+                writer.WriteLine ("*.mp3 -delta");
+                writer.WriteLine ("*.MP3 -delta");
+
+                writer.WriteLine ("*.ogg -delta");
+                writer.WriteLine ("*.OGG -delta");
+
+                writer.WriteLine ("*.oga -delta");
+                writer.WriteLine ("*.OGA -delta");
+
+                // Video
+                writer.WriteLine ("*.avi -delta");
+                writer.WriteLine ("*.AVI -delta");
+
+                writer.WriteLine ("*.mov -delta");
+                writer.WriteLine ("*.MOV -delta");
+
+                writer.WriteLine ("*.mpg -delta");
+                writer.WriteLine ("*.MPG -delta");
+                writer.WriteLine ("*.mpeg -delta");
+                writer.WriteLine ("*.MPEG -delta");
+
+                writer.WriteLine ("*.mkv -delta");
+                writer.WriteLine ("*.MKV -delta");
+
+                writer.WriteLine ("*.ogv -delta");
+                writer.WriteLine ("*.OGV -delta");
+
+                writer.WriteLine ("*.ogx -delta");
+                writer.WriteLine ("*.OGX -delta");
+
+                writer.WriteLine ("*.webm -delta");
+                writer.WriteLine ("*.WEBM -delta");
+
+                // Archives
+                writer.WriteLine ("*.zip -delta");
+                writer.WriteLine ("*.ZIP -delta");
+
+                writer.WriteLine ("*.gz -delta");
+                writer.WriteLine ("*.GZ -delta");
+
+                writer.WriteLine ("*.bz -delta");
+                writer.WriteLine ("*.BZ -delta");
+
+                writer.WriteLine ("*.bz2 -delta");
+                writer.WriteLine ("*.BZ2 -delta");
+
+                writer.WriteLine ("*.rpm -delta");
+                writer.WriteLine ("*.RPM -delta");
+
+                writer.WriteLine ("*.deb -delta");
+                writer.WriteLine ("*.DEB -delta");
+
+                writer.WriteLine ("*.tgz -delta");
+                writer.WriteLine ("*.TGZ -delta");
+
+                writer.WriteLine ("*.rar -delta");
+                writer.WriteLine ("*.RAR -delta");
+
+                writer.WriteLine ("*.ace -delta");
+                writer.WriteLine ("*.ACE -delta");
+
+                writer.WriteLine ("*.7z -delta");
+                writer.WriteLine ("*.7Z -delta");
+
+                writer.WriteLine ("*.pak -delta");
+                writer.WriteLine ("*.PAK -delta");
+
+                writer.WriteLine ("*.tar -delta");
+                writer.WriteLine ("*.TAR -delta");
+
+            writer.Close ();
         }
     }
 }

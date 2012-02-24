@@ -4,13 +4,17 @@ TARGET = library
 SOURCES =  \
 	Defines.cs \
 	Git/SparkleFetcherGit.cs \
+	Git/SparkleGit.cs \
 	Git/SparkleRepoGit.cs \
+	SparkleAnnouncement.cs \
 	SparkleBackend.cs \
 	SparkleChangeSet.cs \
 	SparkleConfig.cs \
+	SparkleExtensions.cs \
 	SparkleFetcherBase.cs \
 	SparkleHelpers.cs \
 	SparkleListenerBase.cs \
+	SparkleListenerFactory.cs \
 	SparkleListenerTcp.cs \
 	SparkleRepoBase.cs \
 	SparkleWatcher.cs

@@ -1,4 +1,34 @@
-0.6.0 for Linux and Mac (Sat Dec 24 2011):
+0.8.2 for Linux and Mac (Sat Feb 11 2012):
+
+        Hylke:
+        - Use the more reliable and less resource intensive FSEvents on Mac.
+	- Improvements to the reconnect mechanism of the notification system
+
+
+0.8.1 for Linux and Mac (Sun Jan 29 2012):
+
+        Hylke:
+        - Disable the Quit menu item when a sync is going on
+        - Show remote url when hovering project names in the log
+        - Fix the event log on Linux
+        - Allow server ports to be specified once again
+        - Open Folder button after setup now takes you to SparkleShare/subfolder
+        - Close event log on Cmd+W on Mac
+
+
+0.8.0 for Linux and Mac (Sun Jan 22 2012):
+
+        Hylke:
+        - Show syncing progress in the status icon
+        - Hide dock icon on Mac until you open a window
+        - Update dates in the event log after midnight
+        - Don't let git compress already compressed files (.jpg .ogg .zip, etc.)
+        - Limit git's memory usage
+        - Ignore history of any added git/hg/bzr repositories, just add the files
+        - Spin status icon on syncing changes made before startup
+
+
+0.6.0 for Linux and Mac (Sun Dec 25 2011):
         
         Hylke:
         - Several fixes for annoying bugs and crashes

@@ -1,3 +1,23 @@
+sparkleshare (0.8.2-1) unstable; urgency=low
+
+  * [272b12a] Imported Upstream version 0.8.2
+    + No longer messes with SSH config (Closes: #656107)
+  * [96a15af] Re-add README.md to debian/docs. It's in the tarball again.
+  * [770c73b] Use dh-autoreconf to call ./autogen.sh.
+
+ -- Carlos Martín Nieto <carlos@cmartin.tk>  Thu, 23 Feb 2012 22:47:40 +0000
+
+sparkleshare (0.6.0-2) unstable; urgency=low
+
+  * Team upload.
+  * Rebuild for CLR 4.0 transition
+  * [52a530b] Re-add python-nautilus build-dependency.
+    This reverts commit f19ee730334cfa69de74f5373c960d8317f1b9a9.
+    (Closes: #645858)
+  * [873e9f1] Drop deprecated cli.make
+
+ -- Chow Loong Jin <hyperair@debian.org>  Thu, 19 Jan 2012 04:19:03 +0800
+
 sparkleshare (0.6.0-1ubuntu1) precise; urgency=low
 
   * Merge with Debian experimental, remaining changes:

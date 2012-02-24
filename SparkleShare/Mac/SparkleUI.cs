@@ -69,6 +69,8 @@ namespace SparkleShare {
                 if (Program.Controller.FirstRun) {
                     Setup = new SparkleSetup ();
                     Setup.Controller.ShowSetupPage ();
+
+                    UpdateDockIconVisibility ();
                 }
             }
         }
@@ -89,6 +91,29 @@ namespace SparkleShare {
         public void Run ()
         {
             NSApplication.Main (new string [0]);
+        }
+
+
+        public void UpdateDockIconVisibility ()
+        {
+            // if (true) { // TODO: check for open windows
+
+                ShowDockIcon ();
+
+            // } else {
+            //     HideDockIcon ();
+            // }
+        }
+
+
+        private void HideDockIcon () {
+            // Currently not supported, here for completeness sake (see Apple's docs)
+            // NSApplication.SharedApplication.ActivationPolicy = NSApplicationActivationPolicy.None;
+        }
+
+
+        private void ShowDockIcon () {
+            NSApplication.SharedApplication.ActivationPolicy = NSApplicationActivationPolicy.Regular;
         }
 
 

@@ -38,6 +38,9 @@ namespace SparkleShare {
         public event UpdateMenuEventHandler UpdateMenuEvent;
         public delegate void UpdateMenuEventHandler (IconState state);
 
+        public event UpdateQuitItemEventHandler UpdateQuitItemEvent;
+        public delegate void UpdateQuitItemEventHandler (bool quit_item_enabled);
+
         public IconState CurrentState = IconState.Idle;
 
         public string [] Folders {
@@ -50,10 +53,37 @@ namespace SparkleShare {
             get {
                 double size = 0;
 
-                foreach (SparkleRepoBase repo in Program.Controller.Repositories)
-                    size += repo.Size + repo.HistorySize;
+                foreach (SparkleRepoBase repo in
+                         Program.Controller.Repositories.GetRange (
+                             0, Program.Controller.Repositories.Count)) {
 
-                return Program.Controller.FormatSize (size);
+                    size += repo.Size + repo.HistorySize;
+                }
+
+                if (size == 0)
+                    return "";
+                else
+                    return " — " + Program.Controller.FormatSize (size);
+            }
+        }
+
+        public int ProgressPercentage {
+            get {
+                return (int) Program.Controller.ProgressPercentage;
+            }
+        }
+
+        public string ProgressSpeed {
+            get {
+                return Program.Controller.ProgressSpeed;
+            }
+        }
+
+        public bool QuitItemEnabled {
+            get {
+                return (CurrentState != IconState.Syncing &&
+                        CurrentState != IconState.SyncingDown &&
+                        CurrentState != IconState.SyncingUp);
             }
         }
 
@@ -65,23 +95,35 @@ namespace SparkleShare {
                     UpdateMenuEvent (CurrentState);
             };
 
+
             Program.Controller.OnIdle += delegate {
                 if (CurrentState != IconState.Error)
                     CurrentState = IconState.Idle;
+
+                if (UpdateQuitItemEvent != null)
+                    UpdateQuitItemEvent (QuitItemEnabled);
 
                 if (UpdateMenuEvent != null)
                     UpdateMenuEvent (CurrentState);
             };
 
+
             Program.Controller.OnSyncing += delegate {
                 CurrentState = IconState.Syncing;
+
+                if (UpdateQuitItemEvent != null)
+                    UpdateQuitItemEvent (QuitItemEnabled);
 
                 if (UpdateMenuEvent != null)
                     UpdateMenuEvent (IconState.Syncing);
             };
 
+
             Program.Controller.OnError += delegate {
                 CurrentState = IconState.Error;
+
+                if (UpdateQuitItemEvent != null)
+                    UpdateQuitItemEvent (QuitItemEnabled);
 
                 if (UpdateMenuEvent != null)
                     UpdateMenuEvent (IconState.Error);

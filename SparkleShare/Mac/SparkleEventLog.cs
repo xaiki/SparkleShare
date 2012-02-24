@@ -46,6 +46,8 @@ namespace SparkleShare {
         private NSTextField size_label_value;
         private NSTextField history_label;
         private NSTextField history_label_value;
+        private NSButton hidden_close_button;
+        
 
         public SparkleEventLog (IntPtr handle) : base (handle) { }
 
@@ -68,6 +70,19 @@ namespace SparkleShare {
             BackingType = NSBackingStore.Buffered;
 
 
+            this.hidden_close_button = new NSButton () {
+                Frame                     = new RectangleF (0, 0, 0, 0),
+                KeyEquivalentModifierMask = NSEventModifierMask.CommandKeyMask,
+                KeyEquivalent             = "w"
+            };
+
+            this.hidden_close_button.Activated += delegate {
+                PerformClose (this);
+            };
+
+            ContentView.AddSubview (this.hidden_close_button);
+
+
             this.size_label = new NSTextField () {
                 Alignment       = NSTextAlignment.Right,
                 BackgroundColor = NSColor.WindowBackground,
@@ -84,7 +99,7 @@ namespace SparkleShare {
                 Bordered        = false,
                 Editable        = false,
                 Frame           = new RectangleF (60, 588, 75, 20),
-                StringValue     = Controller.Size,
+                StringValue     = "…",
                 Font            = SparkleUI.Font
             };
 
@@ -105,7 +120,7 @@ namespace SparkleShare {
                 Bordered        = false,
                 Editable        = false,
                 Frame           = new RectangleF (190, 588, 75, 20),
-                StringValue     = Controller.HistorySize,
+                StringValue     = "…",
                 Font            = SparkleUI.Font
             };
 
@@ -130,6 +145,7 @@ namespace SparkleShare {
             UpdateChooser (null);
             OrderFrontRegardless ();
 
+            Program.UI.UpdateDockIconVisibility ();
 
             // Hook up the controller events
             Controller.UpdateChooserEvent += delegate (string [] folders) {
@@ -155,7 +171,6 @@ namespace SparkleShare {
 
             Controller.UpdateSizeInfoEvent += delegate (string size, string history_size) {
                 InvokeOnMainThread (delegate {
-                    Console.WriteLine (size + " " + history_size);
                     this.size_label_value.StringValue = size;
                     this.history_label_value.StringValue = history_size;
                 });
@@ -237,10 +252,12 @@ namespace SparkleShare {
 
 
     public class SparkleEventsDelegate : NSWindowDelegate {
-        
+
         public override bool WindowShouldClose (NSObject sender)
         {
             (sender as SparkleEventLog).OrderOut (this);
+            Program.UI.UpdateDockIconVisibility ();
+            
             return false;
         }
     }

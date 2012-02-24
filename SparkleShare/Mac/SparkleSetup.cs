@@ -462,10 +462,9 @@ namespace SparkleShare {
 
                     case PageType.Finished: {
 
-                        Header      = "Project succesfully added!";
-                        Description = "Now you can access the files from " +
-                                      "‘" + Controller.SyncingFolder + "’ in " +
-                                      "your SparkleShare folder.";
+                        Header      = "Project ‘" + Path.GetFileName (Controller.PreviousPath) +
+                                      "’ succesfully added!";
+                        Description = "Access the files from your SparkleShare folder.";
 
                         if (warnings != null) {
                             WarningImage = NSImage.ImageNamed ("NSCaution");
@@ -505,7 +504,7 @@ namespace SparkleShare {
                         };
 
                         OpenFolderButton.Activated += delegate {
-                            Program.Controller.OpenSparkleShareFolder (Controller.SyncingFolder);
+                            Program.Controller.OpenSparkleShareFolder (Path.GetFileName (Controller.PreviousPath));
                         };
 
                         Buttons.Add (FinishButton);
@@ -544,7 +543,7 @@ namespace SparkleShare {
                             };
 
                             string slide_image_path = Path.Combine (NSBundle.MainBundle.ResourcePath,
-                                "Pixmaps", "tutorial-slide-1.png");
+                                "Pixmaps", "tutorial-slide-1-mac.png");
 
                             SlideImage = new NSImage (slide_image_path) {
                                 Size = new SizeF (350, 200)
@@ -576,7 +575,7 @@ namespace SparkleShare {
                             };
 
                             string slide_image_path = Path.Combine (NSBundle.MainBundle.ResourcePath,
-                                "Pixmaps", "tutorial-slide-2.png");
+                                "Pixmaps", "tutorial-slide-2-mac.png");
 
                             SlideImage = new NSImage (slide_image_path) {
                                 Size = new SizeF (350, 200)
@@ -607,7 +606,7 @@ namespace SparkleShare {
                             };
 
                             string slide_image_path = Path.Combine (NSBundle.MainBundle.ResourcePath,
-                                "Pixmaps", "tutorial-slide-3.png");
+                                "Pixmaps", "tutorial-slide-3-mac.png");
 
                             SlideImage = new NSImage (slide_image_path) {
                                 Size = new SizeF (350, 200)

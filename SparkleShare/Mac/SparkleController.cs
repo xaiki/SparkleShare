@@ -42,20 +42,25 @@ namespace SparkleShare {
         public SparkleController () : base ()
         {
             string content_path =
-                Directory.GetParent (System.AppDomain.CurrentDomain.BaseDirectory)
-                    .ToString ();
+                Directory.GetParent (System.AppDomain.CurrentDomain.BaseDirectory).ToString ();
 
             string app_path     = Directory.GetParent (content_path).ToString ();
             string growl_path   = Path.Combine (app_path, "Frameworks", "Growl.framework", "Growl");
+
 
             // Needed for Growl
             Dlfcn.dlopen (growl_path, 0);
             NSApplication.Init ();
 
+
             // Let's use the bundled git first
-            SparkleBackend.DefaultBackend.Path =
+            SparkleGit.Path =
                 Path.Combine (NSBundle.MainBundle.ResourcePath,
-                    "git", "bin", "git");
+                    "git", "libexec", "git-core", "git");
+
+            SparkleGit.ExecPath =
+                Path.Combine (NSBundle.MainBundle.ResourcePath,
+                    "git", "libexec", "git-core");
         }
 
 
@@ -63,7 +68,13 @@ namespace SparkleShare {
         {
             base.Initialize ();
 
-            this.watcher.Changed += delegate (string path) {
+            this.watcher.Changed += delegate (object sender, SparkleMacWatcherEventArgs args) {
+                string path = args.Path;
+
+                // Don't even bother with paths in .git/
+                if (path.Contains (".git"))
+                    return;
+
                 string repo_name;
 
                 if (path.Contains ("/"))
@@ -72,17 +83,20 @@ namespace SparkleShare {
                     repo_name = path;
 
                 // Ignore changes in the root of each subfolder, these
-                // are already handled bu the repository
+                // are already handled by the repository
                 if (Path.GetFileNameWithoutExtension (path).Equals (repo_name))
                     return;
 
                 repo_name = repo_name.Trim ("/".ToCharArray ());
-                FileSystemEventArgs args = new FileSystemEventArgs (WatcherChangeTypes.Changed,
-                    Path.Combine (SparkleConfig.DefaultConfig.FoldersPath, path), Path.GetFileName (path));
+                FileSystemEventArgs fse_args = new FileSystemEventArgs (
+                    WatcherChangeTypes.Changed,
+                    Path.Combine (SparkleConfig.DefaultConfig.FoldersPath, path),
+                    Path.GetFileName (path)
+                );
 
                 foreach (SparkleRepoBase repo in Repositories) {
                     if (repo.Name.Equals (repo_name))
-                        repo.OnFileActivity (args);
+                        repo.OnFileActivity (fse_args);
                 }
             };
         }
@@ -161,13 +175,13 @@ namespace SparkleShare {
 			get {
 				string resource_path = NSBundle.MainBundle.ResourcePath;
 				string html_path     = Path.Combine (resource_path, "HTML", "event-log.html");
-				
-				StreamReader reader = new StreamReader (html_path);
-				string html = reader.ReadToEnd ();
-				reader.Close ();
+				string html          = File.ReadAllText (html_path);
 
-                html = html.Replace ("<!-- $jquery-url -->", "file://" +
-                    Path.Combine (NSBundle.MainBundle.ResourcePath, "HTML", "jquery.js"));
+                string jquery_file_path = Path.Combine (NSBundle.MainBundle.ResourcePath,
+                    "HTML", "jquery.js");
+
+                string jquery = File.ReadAllText (jquery_file_path);
+                html          = html.Replace ("<!-- $jquery -->", jquery);
 
                 return html;
 			}
