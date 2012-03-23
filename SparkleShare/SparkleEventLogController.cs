@@ -28,6 +28,12 @@ namespace SparkleShare {
 
     public class SparkleEventLogController {
 
+        public event ShowWindowEventHandler ShowWindowEvent;
+        public delegate void ShowWindowEventHandler ();
+
+        public event HideWindowEventHandler HideWindowEvent;
+        public delegate void HideWindowEventHandler ();
+
         public event UpdateContentEventEventHandler UpdateContentEvent;
         public delegate void UpdateContentEventEventHandler (string html);
 
@@ -66,8 +72,10 @@ namespace SparkleShare {
 
                     // A short delay is less annoying than
                     // a flashing window
-                    if (watch.ElapsedMilliseconds < 750)
-                        Thread.Sleep (750 - (int) watch.ElapsedMilliseconds);
+					int delay = 1000;
+					
+                    if (watch.ElapsedMilliseconds < delay)
+                        Thread.Sleep (delay - (int) watch.ElapsedMilliseconds);
 
                     if (UpdateContentEvent != null)
                         UpdateContentEvent (html);
@@ -146,19 +154,24 @@ namespace SparkleShare {
 
         public SparkleEventLogController ()
         {
+            Program.Controller.ShowEventLogWindowEvent += delegate {
+                if (ShowWindowEvent != null)
+                    ShowWindowEvent ();
+            };
+
             Program.Controller.AvatarFetched += delegate {
                 if (UpdateContentEvent != null)
                     UpdateContentEvent (HTML);
             };
-
+			
             Program.Controller.OnIdle += delegate {
                 if (UpdateContentEvent != null)
                     UpdateContentEvent (HTML);
-
+				
                 if (UpdateSizeInfoEvent != null)
                     UpdateSizeInfoEvent (Size, HistorySize);
             };
-
+			
             Program.Controller.FolderListChanged += delegate {
                 if (this.selected_folder != null &&
                     !Program.Controller.Folders.Contains (this.selected_folder)) {
@@ -169,35 +182,27 @@ namespace SparkleShare {
                 if (UpdateChooserEvent != null)
                     UpdateChooserEvent (Folders);
 
-                if (UpdateContentEvent != null)
-                    UpdateContentEvent (HTML);
-
                 if (UpdateSizeInfoEvent != null)
                     UpdateSizeInfoEvent (Size, HistorySize);
             };
         }
 
 
-        public static void LinkClicked (string url)
+        public void WindowClosed ()
         {
-            if (url.StartsWith (Path.VolumeSeparatorChar.ToString ())) {
+            if (HideWindowEvent != null)
+                HideWindowEvent ();
+			
+			this.selected_folder = null;
+        }
+
+
+        public void LinkClicked (string url)
+        {
+            if (url.StartsWith (Path.VolumeSeparatorChar.ToString ()) ||
+			    url.Substring (1, 1).Equals (":")) {
+				
                 Program.Controller.OpenFile (url);
-
-            } else {
-                Regex regex = new Regex (@"(.+)~(.+)~(.+)");
-                Match match = regex.Match (url);
-
-                if (match.Success) {
-                    string folder_name = match.Groups [1].Value;
-                    string revision    = match.Groups [2].Value;
-                    string note        = match.Groups [3].Value;
-
-                    Thread thread = new Thread (new ThreadStart (delegate {
-                        Program.Controller.AddNoteToFolder (folder_name, revision, note);
-                    }));
-
-                    thread.Start ();
-                }
             }
         }
     }

@@ -19,12 +19,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using SparkleLib;
 
-namespace SparkleLib {
+namespace SparkleLib.Git {
 
-    public class SparkleRepoGit : SparkleRepoBase {
+    public class SparkleRepo : SparkleRepoBase {
 
-        public SparkleRepoGit (string path) : base (path)
+        public SparkleRepo (string path) : base (path)
         {
         }
 
@@ -131,7 +132,7 @@ namespace SparkleLib {
                         line [1].ToString ().Equals ("A")) {
 
                         string path = line.Substring (3);
-                        path = path.Trim ("\"".ToCharArray ());
+                        path        = path.Trim ("\"".ToCharArray ());
                         file_paths.Add (path);
                     }
                 }
@@ -490,7 +491,7 @@ namespace SparkleLib {
                     // Append a timestamp to local version.
                     // Windows doesn't allow colons in the file name, so
                     // we use "h" between the hours and minutes instead.
-                    string timestamp            = DateTime.Now.ToString ("HH\\hmm MMM d");
+                    string timestamp            = DateTime.Now.ToString ("MMM d H\\hmm");
                     string their_path           = conflicting_path + " (" + SparkleConfig.DefaultConfig.User.Name + ", " + timestamp + ")";
                     string abs_conflicting_path = Path.Combine (LocalPath, conflicting_path);
                     string abs_their_path       = Path.Combine (LocalPath, their_path);
@@ -560,7 +561,7 @@ namespace SparkleLib {
             List <SparkleChangeSet> change_sets = new List <SparkleChangeSet> ();
 
             // Console.InputEncoding  = System.Text.Encoding.Unicode;
-            Console.OutputEncoding = System.Text.Encoding.Unicode;
+            // Console.OutputEncoding = System.Text.Encoding.Unicode;
 
             SparkleGit git_log = new SparkleGit (LocalPath, "log -" + count + " --raw -M --date=iso");
             git_log.Start ();
@@ -626,12 +627,11 @@ namespace SparkleLib {
                 if (match.Success) {
                     SparkleChangeSet change_set = new SparkleChangeSet ();
 
-                    change_set.Folder     = Name;
-                    change_set.Revision   = match.Groups [1].Value;
-                    change_set.User.Name  = match.Groups [2].Value;
-                    change_set.User.Email = match.Groups [3].Value;
-                    change_set.IsMagical  = is_merge_commit;
-                    change_set.Url        = Url;
+                    change_set.Folder    = Name;
+                    change_set.Revision  = match.Groups [1].Value;
+                    change_set.User      = new SparkleUser (match.Groups [2].Value, match.Groups [3].Value);
+                    change_set.IsMagical = is_merge_commit;
+                    change_set.Url       = Url;
 
                     change_set.Timestamp = new DateTime (int.Parse (match.Groups [4].Value),
                         int.Parse (match.Groups [5].Value), int.Parse (match.Groups [6].Value),
@@ -658,7 +658,7 @@ namespace SparkleLib {
                                 file_path = file_path.Substring (0,
                                     file_path.Length - ".empty".Length);
 
-                            if (change_type.Equals ("A") && !file_path.Contains (".notes")) {
+                            if (change_type.Equals ("A")) {
                                 change_set.Added.Add (file_path);
 
                             } else if (change_type.Equals ("M")) {
@@ -692,7 +692,6 @@ namespace SparkleLib {
                          change_set.Deleted.Count +
                          change_set.MovedFrom.Count) > 0) {
 
-                        change_set.Notes.AddRange (GetNotes (change_set.Revision));
                         change_sets.Add (change_set);
                     }
                 }
@@ -709,31 +708,37 @@ namespace SparkleLib {
         // git submodules by renaming the .git/HEAD file
         private void PrepareDirectories (string path)
         {
-            foreach (string child_path in Directory.GetDirectories (path)) {
-                if (child_path.EndsWith (".git") &&
-                    !child_path.Equals (Path.Combine (LocalPath, ".git"))) {
-
-                    string HEAD_file_path = Path.Combine (child_path, "HEAD");
-
-                    if (File.Exists (HEAD_file_path)) {
-                        File.Move (HEAD_file_path, HEAD_file_path + ".backup");
-                        SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Renamed " + HEAD_file_path);
+            try {
+                foreach (string child_path in Directory.GetDirectories (path)) {
+                    if (child_path.EndsWith (".git") &&
+                        !child_path.Equals (Path.Combine (LocalPath, ".git"))) {
+    
+                        string HEAD_file_path = Path.Combine (child_path, "HEAD");
+    
+                        if (File.Exists (HEAD_file_path)) {
+                            File.Move (HEAD_file_path, HEAD_file_path + ".backup");
+                            SparkleHelpers.DebugInfo ("Git", "[" + Name + "] Renamed " + HEAD_file_path);
+                        }
+    
+                        continue;
+    
+                    } else if (child_path.EndsWith (".git")) {
+                        continue;
                     }
-
-                    continue;
-
-                } else if (child_path.EndsWith (".notes")) {
-                    continue;
+    
+                    PrepareDirectories (child_path);
+                }
+    
+                if (Directory.GetFiles (path).Length == 0 &&
+                    Directory.GetDirectories (path).Length == 0 &&
+                    !path.Equals (LocalPath)) {
+    
+                    File.Create (Path.Combine (path, ".empty")).Close ();
+                    File.SetAttributes (Path.Combine (path, ".empty"), FileAttributes.Hidden);
                 }
 
-                PrepareDirectories (child_path);
-            }
-
-            if (Directory.GetFiles (path).Length == 0 &&
-                Directory.GetDirectories (path).Length == 0 &&
-                !path.Equals (LocalPath)) {
-
-                File.Create (Path.Combine (path, ".empty")).Close ();
+            } catch (IOException e) {
+                SparkleHelpers.DebugInfo ("Git", "Failed preparing directory: " + e.Message);
             }
         }
 
@@ -830,13 +835,17 @@ namespace SparkleLib {
                 return 0;
 
             try {
-                foreach (FileInfo file in parent.GetFiles()) {
+                foreach (FileInfo file in parent.GetFiles ()) {
                     if (!file.Exists)
                         return 0;
+
+                    if (file.Name.Equals (".empty"))
+                        File.SetAttributes (file.FullName, FileAttributes.Hidden);
 
                     size += file.Length;
                 }
 
+                // FIXME: Doesn't seem to recurse on Windows
                 foreach (DirectoryInfo directory in parent.GetDirectories ())
                     size += CalculateSizes (directory);
 
