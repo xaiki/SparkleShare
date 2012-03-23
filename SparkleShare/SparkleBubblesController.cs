@@ -28,20 +28,13 @@ namespace SparkleShare {
 
         public SparkleBubblesController ()
         {
-            Program.Controller.ConflictNotificationRaised += delegate {
-                ShowBubble ("Conflict detected.",
-                    "Don't worry, SparkleShare made a copy of each conflicting file.",
-                    null);
+            Program.Controller.AlertNotificationRaised += delegate (string title, string message) {
+                ShowBubble (title, message, null);
             };
 
             Program.Controller.NotificationRaised += delegate (SparkleChangeSet change_set) {
                 ShowBubble (change_set.User.Name, FormatMessage (change_set),
                     Program.Controller.GetAvatar (change_set.User.Email, 36));
-            };
-
-            Program.Controller.NoteNotificationRaised += delegate (SparkleUser user, string folder_name) {
-                ShowBubble (user.Name, "added a note to '" + folder_name + "'",
-                    Program.Controller.GetAvatar (user.Email, 36));
             };
         }
 
@@ -50,6 +43,12 @@ namespace SparkleShare {
         {
             if (ShowBubbleEvent != null && Program.Controller.NotificationsEnabled)
                 ShowBubbleEvent (title, subtext, image_path);
+        }
+
+
+        public void BubbleClicked ()
+        {
+            Program.Controller.ShowEventLogWindow ();
         }
 
 
