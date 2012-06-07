@@ -11,7 +11,7 @@ Build-Depends-Indep: intltool,
                      libwebkit-cil-dev,
                      mono-devel (>= 2.4.3),
                      python-nautilus
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Homepage: http://sparkleshare.org/
 Vcs-Git: git://git.debian.org/pkg-cli-apps/packages/sparkleshare.git
 Vcs-Browser: http://git.debian.org/?p=pkg-cli-apps/packages/sparkleshare.git
