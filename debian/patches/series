@@ -1,1 +1,2 @@
 0001-Don-t-call-update-desktop-database-from-the-Makefile.patch
+0002-Fix-event-log-not-loading-on-Ubuntu.-Closes-729.patch
