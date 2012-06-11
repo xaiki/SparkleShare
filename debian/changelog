@@ -1,3 +1,13 @@
+sparkleshare (0.8.4-1ubuntu1) quantal; urgency=low
+
+  * Merge with Debian unstable, remaining changes:
+    + Add gbp.conf for Ubuntu branch.  Ubuntu sources are stored as a branch
+    in Debian's git repository. Please try to use this if possible (contact
+    the Debian maintainers for merges).
+    + Add BD on libappindicator# to enable app indicator support
+
+ -- Iain Lane <laney@debian.org>  Mon, 11 Jun 2012 14:26:57 +0100
+
 sparkleshare (0.8.4-1) unstable; urgency=low
 
   [ Jo Shields ]
