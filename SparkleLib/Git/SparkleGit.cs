@@ -18,8 +18,9 @@
 using System;
 using System.IO;
 using System.Diagnostics;
+using SparkleLib;
 
-namespace SparkleLib {
+namespace SparkleLib.Git {
 
     public class SparkleGit : Process {
 

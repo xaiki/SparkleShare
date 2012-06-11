@@ -3,7 +3,7 @@ Section: utils
 Priority: optional
 Maintainer: Debian CLI Applications Team <pkg-cli-apps-team@lists.alioth.debian.org>
 Uploaders: Carlos Martín Nieto <carlos@cmartin.tk>
-Build-Depends: cli-common-dev (>= 0.5.7~), debhelper (>= 7.0.50~), dh-autoreconf
+Build-Depends: cli-common-dev (>= 0.5.7~), debhelper (>= 7.0.50~)
 Build-Depends-Indep: intltool,
                      libappindicator0.1-cil-dev (>= 0.0.7),
                      libglib2.0-cil-dev (>= 2.12.2),
@@ -12,7 +12,7 @@ Build-Depends-Indep: intltool,
                      libwebkit-cil-dev,
                      mono-devel (>= 2.4.3),
                      python-nautilus
-Standards-Version: 3.9.2
+Standards-Version: 3.9.3
 Homepage: http://sparkleshare.org/
 Vcs-Git: git://git.debian.org/pkg-cli-apps/packages/sparkleshare.git
 Vcs-Browser: http://git.debian.org/?p=pkg-cli-apps/packages/sparkleshare.git
@@ -22,6 +22,7 @@ Architecture: all
 Depends: gnome-icon-theme,
          git (>= 1.7.1),
          gvfs (>= 1.3),
+         libjs-jquery,
          ${cli:Depends},
          ${misc:Depends},
          ${shlibs:Depends}

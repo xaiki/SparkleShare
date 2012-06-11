@@ -1,9 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
 m4_define([sparkleshare_version],
-	[0.8.2])
+	[0.8.4])
 
 m4_define([sparkleshare_asm_version],
-	[0.8.2])
+	[0.8.4])
 
 AC_PREREQ([2.54])
 AC_INIT([SparkleShare], sparkleshare_version)
@@ -157,12 +157,13 @@ data/plugins/Makefile
 SparkleLib/AssemblyInfo.cs
 SparkleLib/Defines.cs
 SparkleLib/Makefile
-SparkleShare/sparkleshare
+SparkleLib/Git/Makefile
+SparkleShare/Linux/Makefile
+SparkleShare/Linux/sparkleshare
+SparkleShare/Linux/Nautilus/Makefile
+SparkleShare/Linux/Nautilus/sparkleshare-nautilus-extension.py
+SparkleShare/Linux/Nautilus/sparkleshare-nautilus3-extension.py
 SparkleShare/Makefile
-SparkleShare/Mac/Makefile
-SparkleShare/Nautilus/Makefile
-SparkleShare/Nautilus/sparkleshare-nautilus-extension.py
-SparkleShare/Nautilus/sparkleshare-nautilus3-extension.py
 po/Makefile.in
 Makefile
 ])

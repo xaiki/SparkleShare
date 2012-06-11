@@ -1,3 +1,21 @@
+sparkleshare (0.8.4-1) unstable; urgency=low
+
+  [ Jo Shields ]
+  * [9a423ce] Imported Upstream version 0.8.4
+
+  [ Carlos Martín Nieto ]
+  * [bd3c9bd] There's no autogen anymore, use ./configure as usual.
+    It looks like we do have tarball releases again.
+  * [264b24c] Add
+    0001-Don-t-call-update-desktop-database-from-the-Makefile.patch
+  * [7ff3ad5] Remove README.md and add TRADEMARK to the installed docs
+  * [2661826] Add patch
+    0002-Fix-event-log-not-loading-on-Ubuntu.-Closes-729.patch
+  * [f9780f2] Use the packaged jquery
+  * [4dbf480] Bump Standards-Version to 3.9.3
+
+ -- Carlos Martín Nieto <carlos@cmartin.tk>  Mon, 11 Jun 2012 14:13:52 +0100
+
 sparkleshare (0.8.2-1ubuntu1) precise; urgency=low
 
   * Merge with Debian experimental, remaining changes:

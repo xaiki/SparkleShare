@@ -19,39 +19,43 @@ using System;
 using System.IO;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using System.Threading;
 
-namespace SparkleLib {
+using SparkleLib;
+
+namespace SparkleLib.Git {
 
     // Sets up a fetcher that can get remote folders
-    public class SparkleFetcherGit : SparkleFetcherBase {
+    public class SparkleFetcher : SparkleFetcherBase {
 
         private SparkleGit git;
 
 
-        public SparkleFetcherGit (string server, string remote_folder, string target_folder) :
-            base (server, remote_folder, target_folder)
+        public SparkleFetcher (string server, string remote_path, string target_folder) :
+            base (server, remote_path, target_folder)
         {
+			remote_path = remote_path.Trim ("/".ToCharArray ());
+			
             if (server.EndsWith ("/"))
                 server = server.Substring (0, server.Length - 1);
 
-            if (!remote_folder.StartsWith ("/"))
-                remote_folder = "/" + remote_folder;
-
+            if (!remote_path.StartsWith ("/"))
+                remote_path = "/" + remote_path;
 
             Uri uri;
 
             try {
-                uri = new Uri (server + remote_folder);
+				uri = new Uri (server + remote_path);
 
             } catch (UriFormatException) {
-                uri = new Uri ("ssh://" + server + remote_folder);
+				uri = new Uri ("ssh://" + server + remote_path);
             }
 
 
             if (!uri.Scheme.Equals ("ssh") &&
                 !uri.Scheme.Equals ("git")) {
-
-                uri = new Uri ("ssh://" + uri);
+				
+				uri = new Uri ("ssh://" + uri);
             }
 
 
@@ -73,8 +77,10 @@ namespace SparkleLib {
 
             } else {
                 if (string.IsNullOrEmpty (uri.UserInfo)) {
-                    uri = new Uri (uri.Scheme + "://git@" + uri.Host + ":" + uri.Port + uri.AbsolutePath);
-                    uri = new Uri (uri.ToString ().Replace (":-1", ""));
+					if (uri.Port == -1)
+						uri = new Uri (uri.Scheme + "://git@" + uri.Host + uri.AbsolutePath);
+					else
+						uri = new Uri (uri.Scheme + "://git@" + uri.Host + ":" + uri.Port + uri.AbsolutePath);
                 }
             }
 
@@ -89,7 +95,7 @@ namespace SparkleLib {
             this.git = new SparkleGit (SparkleConfig.DefaultConfig.TmpPath,
                 "clone " +
                 "--progress " + // Redirects progress stats to standarderror
-                "\"" + RemoteUrl + "\" " + "\"" + TargetFolder + "\"");
+                "\"" + RemoteUrl + "\" \"" + TargetFolder + "\"");
             
             this.git.StartInfo.RedirectStandardError = true;
             this.git.Start ();
@@ -130,17 +136,29 @@ namespace SparkleLib {
             }
             
             this.git.WaitForExit ();
-            SparkleHelpers.DebugInfo ("Git", "Exit code " + this.git.ExitCode.ToString ());
+            SparkleHelpers.DebugInfo ("Git", "Exit code: " + this.git.ExitCode);
 
+            if (this.git.ExitCode == 0) {
+                while (percentage < 100) {
+                    percentage += 25;
+    
+                    if (percentage >= 100)
+                        break;
+    
+                    Thread.Sleep (500);
+                    base.OnProgressChanged (percentage);
+                }
+    
+                base.OnProgressChanged (100);
 
-            if (this.git.ExitCode != 0) {
-                return false;
-
-            } else {
                 InstallConfiguration ();
                 InstallExcludeRules ();
                 AddWarnings ();
+
                 return true;
+
+            } else {
+                return false;
             }
         }
 
@@ -162,8 +180,8 @@ namespace SparkleLib {
 
             } else {
                 Warnings = new string [] {
-                    string.Format ("You seem to have configured a system ‘gitignore’ file. " +
-                                   "This may interfere with SparkleShare.\n({0})", output)
+                    string.Format ("You seem to have configured a system wide ‘gitignore’ file. " +
+                                   "This may affect SparkleShare files:\n\n{0}", output)
                 };
             }
         }

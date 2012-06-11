@@ -93,10 +93,21 @@ namespace SparkleLib {
         }
 
 
-        // Gets the relative path of two hierarchical absolute paths	
+        // Gets the relative path of two hierarchical absolute paths    
         public static string DiffPaths (string target, string source)
         {
             return target.Replace (source + Path.DirectorySeparatorChar, "");      
+        }
+
+        public static bool IsWindows
+        {
+            get
+            {
+                PlatformID platform = Environment.OSVersion.Platform;
+                return (platform == PlatformID.Win32NT
+                    || platform == PlatformID.Win32S
+                    || platform == PlatformID.Win32Windows);
+            }
         }
     }
 }
