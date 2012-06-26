@@ -26,7 +26,7 @@ from gi.repository import Nautilus, GObject, Gtk, Gdk
 SPARKLESHARE_PATH = os.path.join (os.path.expanduser ('~'), "SparkleShare")
 
 import gettext
-gettext.bindtextdomain('sparkleshare', '/usr/share/locale')
+gettext.bindtextdomain('sparkleshare', '/home/carlos/staging/ss/share/locale')
 gettext.textdomain('sparkleshare')
 _ = gettext.gettext
 
@@ -83,7 +83,7 @@ class SparkleShareExtension (GObject.GObject, Nautilus.MenuProvider):
         elif "github.com" in host:
             # ssh://git@github.com/hbons/SparkleShare.git
             # https://raw.github.com/hbons/SparkleShare/master/README
-            url = "http://raw.github.com/" + urllib.quote(origin_path.rstrip(".git")) + "/raw/master/" + urllib.quote(relative_path)
+            url = "https://raw.github.com/" + urllib.quote(origin_path.rstrip(".git")) + "/master/" + urllib.quote(relative_path)
         else:
             # https://git.one-gear.com/?p=thansen/Public.git;a=blob;f=SparkleShare.txt;hb=HEAD
             url = "http://" + host + "/?p=" + urllib.quote(origin_path) +";a=blob;f=" + urllib.quote(relative_path) + ";hb=HEAD"

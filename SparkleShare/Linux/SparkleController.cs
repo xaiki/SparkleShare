@@ -204,22 +204,17 @@ namespace SparkleShare {
         }
 
             
-        public override void OpenSparkleShareFolder (string subfolder)
+        public override void OpenFolder (string path)
         {
-            string folder = Path.Combine (SparkleConfig.DefaultConfig.FoldersPath, subfolder);
-
-            Process process = new Process ();
-            process.StartInfo.FileName  = "xdg-open";
-            process.StartInfo.Arguments = "\"" + folder + "\"";
-            process.Start ();
+            OpenFile (path);
         }
 
 
-        public override void OpenFile (string url)
+        public override void OpenFile (string path)
         {
             Process process = new Process ();
             process.StartInfo.FileName = "xdg-open";
-            process.StartInfo.Arguments = "\"" + url + "\"";
+            process.StartInfo.Arguments = "\"" + path + "\"";
             process.Start ();
         }
     }

@@ -1,4 +1,5 @@
-SUBDIRS =	Linux
+SUBDIRS = Linux \
+	Common
 
 ASSEMBLY = SparkleShare
 TARGET = exe
@@ -17,7 +18,6 @@ SOURCES =  \
 	SparkleEventLogController.cs \
 	SparkleExtensions.cs \
 	SparkleInvite.cs \
-	SparkleOptions.cs \
 	SparklePlugin.cs \
 	SparkleSetupController.cs \
 	SparkleStatusIconController.cs
@@ -25,5 +25,5 @@ SOURCES =  \
 include $(top_srcdir)/build/build.mk
 	
 install-data-hook:
-	update-desktop-database $(datadir)/applications
-	echo "Installed protocol handler sparkleshare://"
+	test -f $(datadir)/applications/defaults.list && \
+	test -z $(DESTDIR) && update-desktop-database $(datadir)/applications || :

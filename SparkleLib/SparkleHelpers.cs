@@ -17,21 +17,20 @@
 
 using System;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace SparkleLib {
     
     public static class SparkleHelpers {
 
-        private static object debug_lock = new object ();
+        private static Object debug_lock = new Object ();
 
         // Show debug info if needed
         public static void DebugInfo (string type, string message)
         {
-            if (!message.StartsWith ("["))
-                message = " " + message;
-
             string timestamp = DateTime.Now.ToString ("HH:mm:ss");
-            string line      = timestamp + " " + "[" + type + "]" + message;
+            string line      = timestamp + " | " + type + " | " + message;
 
             if (SparkleConfig.DebugMode)
                 Console.WriteLine (line);
@@ -79,9 +78,8 @@ namespace SparkleLib {
         // Check if a file is a symbolic link
         public static bool IsSymlink (string file)
         {
-            FileAttributes attr = File.GetAttributes (file);
-
-            return ((attr & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint);
+            FileAttributes attributes = File.GetAttributes (file);
+            return ((attributes & FileAttributes.ReparsePoint) == FileAttributes.ReparsePoint);
         }
 
 
@@ -93,22 +91,24 @@ namespace SparkleLib {
         }
 
 
-        // Gets the relative path of two hierarchical absolute paths    
-        public static string DiffPaths (string target, string source)
-        {
-            return target.Replace (source + Path.DirectorySeparatorChar, "");      
+        public static bool IsWindows {
+            get {
+                PlatformID platform = Environment.OSVersion.Platform;
+
+                return (platform == PlatformID.Win32NT ||
+                        platform == PlatformID.Win32S  ||
+                        platform == PlatformID.Win32Windows);
+            }
         }
 
-        public static bool IsWindows
+
+        public static string SHA1 (string s)
         {
-            get
-            {
-                PlatformID platform = Environment.OSVersion.Platform;
-                return (platform == PlatformID.Win32NT
-                    || platform == PlatformID.Win32S
-                    || platform == PlatformID.Win32Windows);
-            }
+            SHA1 sha1         = new SHA1CryptoServiceProvider ();
+            Byte [] bytes     = ASCIIEncoding.Default.GetBytes (s);
+            Byte [] enc_bytes = sha1.ComputeHash (bytes);
+
+            return BitConverter.ToString (enc_bytes).ToLower ().Replace ("-", "");
         }
     }
 }
-

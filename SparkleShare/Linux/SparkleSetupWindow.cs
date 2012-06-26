@@ -34,11 +34,10 @@ namespace SparkleShare {
         private VBox VBox;
         private VBox Wrapper;
         private VBox OptionArea;
-        private HButtonBox Buttons;
+        private HBox Buttons;
 
         public string Header;
         public string Description;
-        
         public string SecondaryTextColor;
         public string SecondaryTextColorSelected;
 
@@ -108,11 +107,12 @@ namespace SparkleShare {
         }
 
 
-        private HButtonBox CreateButtonBox ()
+        private HBox CreateButtonBox ()
         {
-            return new HButtonBox () {
+            return new HBox () {
                 BorderWidth = 0,
-                Layout      = ButtonBoxStyle.End,
+                //Layout      = ButtonBoxStyle.End,
+                Homogeneous = false,
                 Spacing     = 6
             };
         }
@@ -120,15 +120,14 @@ namespace SparkleShare {
 
         public void AddButton (Button button)
         {
+            (button.Child as Label).Xpad = 15;
             Buttons.Add (button);
-            ShowAll ();
         }
 
 
         public void AddOption (Widget widget)
-        {
+        {            
             OptionArea.Add (widget);
-            ShowAll ();
         }
 
 
@@ -140,15 +139,16 @@ namespace SparkleShare {
             };
 
             VBox layout_vertical = new VBox (false, 0);
-            layout_vertical.PackStart (new Label (""), false, false, 0);
+            layout_vertical.PackStart (new Label (""), false, false, 6);
             layout_vertical.PackStart (header, false, false, 0);
 
             if (!string.IsNullOrEmpty (Description)) {
                 Label description = new Label (Description) {
                     Xalign = 0,
-                    Wrap   = true
+                    LineWrap = true,
+                    LineWrapMode = Pango.WrapMode.WordChar
                 };
-
+                
                 layout_vertical.PackStart (description, false, false, 21);
             }
 
@@ -159,11 +159,14 @@ namespace SparkleShare {
             ShowAll ();
         }
 
-
+    
         public void Reset ()
         {
             Header      = "";
             Description = "";
+
+            if (OptionArea.Children.Length > 0)
+                OptionArea.Remove (OptionArea.Children [0]);
 
             if (Wrapper.Children.Length > 0)
                 Wrapper.Remove (Wrapper.Children [0]);
@@ -177,6 +180,13 @@ namespace SparkleShare {
         
         new public void ShowAll ()
         {
+            if (Buttons.Children.Length > 0) {
+                Button default_button = (Button) Buttons.Children [Buttons.Children.Length - 1];
+            
+                default_button.CanDefault = true;
+                Default = default_button;
+            }
+        
             Present ();
             base.ShowAll ();
         }

@@ -29,7 +29,7 @@ import gtk
 SPARKLESHARE_PATH = os.path.join (os.path.expanduser ('~'), "SparkleShare")
 
 import gettext
-gettext.bindtextdomain('sparkleshare', '/usr/share/locale')
+gettext.bindtextdomain('sparkleshare', '/home/carlos/staging/ss/share/locale')
 gettext.textdomain('sparkleshare')
 _ = gettext.gettext
 
@@ -88,7 +88,7 @@ class SparkleShareExtension (nautilus.MenuProvider):
         if "gitorious.org" in url:
 	        url = "http://" + url + "/blobs/master" + relative_path
         if "github.com" in url:
-            url = "http://" + url + "/raw/master" + relative_path
+            url = "https://" + url + "/master" + relative_path
 
         url = url.replace (" ", "%20");
 

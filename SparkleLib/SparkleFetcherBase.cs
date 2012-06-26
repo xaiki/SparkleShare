@@ -16,7 +16,11 @@
 
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -26,7 +30,7 @@ namespace SparkleLib {
     public abstract class SparkleFetcherBase {
 
         public delegate void StartedEventHandler ();
-        public delegate void FinishedEventHandler (string [] warnings);
+        public delegate void FinishedEventHandler (bool repo_is_encrypted, bool repo_is_empty, string [] warnings);
         public delegate void FailedEventHandler ();
         public delegate void ProgressChangedEventHandler (double percentage);
 
@@ -37,132 +41,124 @@ namespace SparkleLib {
 
         public abstract bool Fetch ();
         public abstract void Stop ();
+        public abstract void Complete ();
+        public abstract bool IsFetchedRepoEmpty { get; }
+        public abstract bool IsFetchedRepoPasswordCorrect (string password);
+        public abstract void EnableFetchedRepoCrypto (string password);
 
-        public string TargetFolder;
-        public string RemoteUrl;
-        public string [] ExcludeRules;
-        public string [] Warnings;
+        public Uri RemoteUrl { get; protected set; }
+        public string RequiredFingerprint { get; protected set; }
+        public readonly bool FetchPriorHistory = false;
+        public string TargetFolder { get; protected set; }
         public bool IsActive { get; private set; }
+
+        public string [] Warnings {
+            get {
+                return this.warnings.ToArray ();
+            }
+        }
+
+        public string [] Errors {
+            get {
+                return this.errors.ToArray ();
+            }
+        }
+
+        
+        protected List<string> warnings = new List<string> ();
+        protected List<string> errors = new List<string> ();
 
         private Thread thread;
 
 
-        public SparkleFetcherBase (string server, string remote_folder, string target_folder)
+        public SparkleFetcherBase (string server, string required_fingerprint, string remote_path,
+            string target_folder, bool fetch_prior_history)
         {
+            RequiredFingerprint = required_fingerprint;
+            FetchPriorHistory   = fetch_prior_history;
+            remote_path         = remote_path.Trim ("/".ToCharArray ());
+
+            if (server.EndsWith ("/"))
+                server = server.Substring (0, server.Length - 1);
+
+            if (!remote_path.StartsWith ("/"))
+                remote_path = "/" + remote_path;
+
+            if (!server.Contains ("://"))
+                server = "ssh://" + server;
+
             TargetFolder = target_folder;
-            RemoteUrl    = server + "/" + remote_folder;
-            IsActive       = false;
-
-            ExcludeRules = new string [] {
-                // gedit and emacs
-                "*~",
-
-                // Firefox and Chromium temporary download files
-                "*.part",
-                "*.crdownload",
-
-                // vi(m)
-                ".*.sw[a-z]",
-                "*.un~",
-                "*.swp",
-                "*.swo",
-
-                // KDE
-                ".directory",
-
-                // Mac OS X
-                ".DS_Store",
-                "Icon?",
-                "._*",
-                ".Spotlight-V100",
-                ".Trashes",
-
-                // Omnigraffle
-                "*(Autosaved).graffle",
-
-                // Windows
-                "Thumbs.db",
-                "Desktop.ini",
-
-                // MS Office
-                "~*.tmp",
-                "~*.TMP",
-                "*~*.tmp",
-                "*~*.TMP",
-                "~*.ppt",
-                "~*.PPT",
-                "~*.pptx",
-                "~*.PPTX",
-                "~*.xls",
-                "~*.XLS",
-                "~*.xlsx",
-                "~*.XLSX",
-                "~*.doc",
-                "~*.DOC",
-                "~*.docx",
-                "~*.DOCX",
-
-                // CVS
-                "*/CVS/*",
-                ".cvsignore",
-                "*/.cvsignore",
-
-                // Subversion
-                "/.svn/*",
-                "*/.svn/*",
-
-                // Mercurial
-                "/.hg/*",
-                "*/.hg/*",
-                "*/.hgignore",
-
-                // Bazaar
-                "/.bzr/*",
-                "*/.bzr/*",
-                "*/.bzrignore"
-            };
+            RemoteUrl    = new Uri (server + remote_path);
+            IsActive     = false;
         }
 
 
-        // Clones the remote repository
         public void Start ()
         {
             IsActive = true;
-            SparkleHelpers.DebugInfo ("Fetcher", "[" + TargetFolder + "] Fetching folder: " + RemoteUrl);
 
             if (Started != null)
                 Started ();
 
+            SparkleHelpers.DebugInfo ("Fetcher", "[" + TargetFolder + "] Fetching folder: " + RemoteUrl);
+
             if (Directory.Exists (TargetFolder))
                 Directory.Delete (TargetFolder, true);
 
-            string host = GetHost (RemoteUrl);
 
-            if (String.IsNullOrEmpty (host)) {
+            string host     = RemoteUrl.Host;
+            string host_key = GetHostKey ();
+
+            if (string.IsNullOrEmpty (host) || host_key == null) {
                 if (Failed != null)
                     Failed ();
 
                 return;
             }
 
-            DisableHostKeyCheckingForHost (host);
+
+            bool warn = true;
+            if (RequiredFingerprint != null) {
+                string host_fingerprint = GetFingerprint (host_key);
+
+                if (host_fingerprint == null ||
+                    !RequiredFingerprint.Equals (host_fingerprint)) {
+
+                    SparkleHelpers.DebugInfo ("Auth", "Fingerprint doesn't match");
+
+                    if (Failed != null)
+                        Failed ();
+
+                    return;
+                }
+
+                warn = false;
+                SparkleHelpers.DebugInfo ("Auth", "Fingerprint matches");
+
+            } else {
+               SparkleHelpers.DebugInfo ("Auth", "Skipping fingerprint check");
+            }
+
+            AcceptHostKey (host_key, warn);
+
 
             this.thread = new Thread (new ThreadStart (delegate {
                 if (Fetch ()) {
                     Thread.Sleep (500);
                     SparkleHelpers.DebugInfo ("Fetcher", "Finished");
 
-                    EnableHostKeyCheckingForHost (host);
                     IsActive = false;
 
+                    // TODO: Find better way to determine if folder should have crypto setup
+                    bool repo_is_encrypted = RemoteUrl.ToString ().Contains ("crypto");
+
                     if (Finished != null)
-                        Finished (Warnings);
+                        Finished (repo_is_encrypted, IsFetchedRepoEmpty, Warnings);
 
                 } else {
                     Thread.Sleep (500);
                     SparkleHelpers.DebugInfo ("Fetcher", "Failed");
 
-                    EnableHostKeyCheckingForHost (host);
                     IsActive = false;
 
                     if (Failed != null)
@@ -187,111 +183,201 @@ namespace SparkleLib {
             if (ProgressChanged != null)
                 ProgressChanged (percentage);
         }
-    
-        
-        private void DisableHostKeyCheckingForHost (string host)
+
+
+        private string GetHostKey ()
         {
-            string path = SparkleConfig.DefaultConfig.HomePath;
+            string host = RemoteUrl.Host;
+            SparkleHelpers.DebugInfo ("Auth", "Fetching host key for " + host);
 
-            if (!(SparkleBackend.Platform == PlatformID.Unix ||
-                  SparkleBackend.Platform == PlatformID.MacOSX)) {
+            Process process = new Process () {
+                EnableRaisingEvents = true
+            };
 
-                path = Environment.ExpandEnvironmentVariables ("%HOMEDRIVE%%HOMEPATH%");
-            }
+            process.StartInfo.WorkingDirectory       = SparkleConfig.DefaultConfig.TmpPath;
+            process.StartInfo.UseShellExecute        = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.CreateNoWindow         = true;
 
-            string ssh_config_path      = Path.Combine (path, ".ssh");
-            string ssh_config_file_path = SparkleHelpers.CombineMore (path, ".ssh", "config");
-            string ssh_config           = "\n# <SparkleShare>" +
-                                          "\nHost " + host +
-                                          "\n\tStrictHostKeyChecking no" +
-                                          "\n# </SparkleShare>";
+            process.StartInfo.FileName = "ssh-keyscan";
+            process.StartInfo.Arguments = "-t rsa " + host;
 
-            if (!Directory.Exists (ssh_config_path))
-                Directory.CreateDirectory (ssh_config_path);
+            process.Start ();
 
-            if (File.Exists (ssh_config_file_path)) {
-                TextWriter writer = File.AppendText (ssh_config_file_path);
-                writer.Write (ssh_config);
-                writer.Close ();
+            // Reading the standard output HAS to go before
+            // WaitForExit, or it will hang forever on output > 4096 bytes
+            string host_key = process.StandardOutput.ReadToEnd ().Trim ();
+            process.WaitForExit ();
 
-            } else {
-                File.WriteAllText (ssh_config_file_path, ssh_config);
-            }
-
-            Chmod644 (ssh_config_file_path);
-            SparkleHelpers.DebugInfo ("Fetcher", "Disabled host key checking for " + host);
-        }
-        
-
-        private void EnableHostKeyCheckingForHost (string host)
-        {
-            string path = SparkleConfig.DefaultConfig.HomePath;
-
-            if (SparkleBackend.Platform != PlatformID.Unix &&
-                SparkleBackend.Platform != PlatformID.MacOSX) {
-
-                path = Environment.ExpandEnvironmentVariables ("%HOMEDRIVE%%HOMEPATH%");
-            }
-
-            string ssh_config_file_path = SparkleHelpers.CombineMore (path, ".ssh", "config");
-
-            if (File.Exists (ssh_config_file_path)) {
-                string current_ssh_config = File.ReadAllText (ssh_config_file_path);
-
-                current_ssh_config = current_ssh_config.Trim ();
-                string [] lines = current_ssh_config.Split ('\n');
-                string new_ssh_config = "";
-                bool in_sparkleshare_section = false;
-
-                foreach (string line in lines) {
-                    if (line.StartsWith ("# <SparkleShare>")) {
-                        in_sparkleshare_section = true;
-                        continue;
-                    }
-
-                    if (line.StartsWith ("# </SparkleShare>")) {
-                        in_sparkleshare_section = false;
-                        continue;
-                    }
-
-                    if (in_sparkleshare_section)
-                        continue;
-
-                    new_ssh_config += line + "\n"; // do not use Environment.NewLine because file is in unix format
-                }
-
-                if (string.IsNullOrEmpty (new_ssh_config.Trim ())) {
-                    File.Delete (ssh_config_file_path);
-
-                } else {
-                    File.WriteAllText (ssh_config_file_path, new_ssh_config.Trim ());
-                    Chmod644 (ssh_config_file_path);
-                }
-            }
-
-            SparkleHelpers.DebugInfo ("Fetcher", "Enabled host key checking for " + host);
-        }
-
-
-        private string GetHost (string url)
-        {
-            Regex regex = new Regex (@"(@|://)([a-z0-9\.-]+)(/|:)");
-            Match match = regex.Match (url);
-
-            if (match.Success)
-                return match.Groups [2].Value;
+            if (process.ExitCode == 0)
+                return host_key;
             else
                 return null;
         }
-        
-        
-        private void Chmod644 (string file_path)
+
+
+        // FIXME: Calculate fingerprint natively: decode base64 -> md5
+        private string GetFingerprint (string public_key)
         {
-            // Hack to be able to set the permissions on a file
-            // that OpenSSH still likes without resorting to Mono.Unix
-            FileInfo file_info   = new FileInfo (file_path);
-            file_info.Attributes = FileAttributes.ReadOnly;
-            file_info.Attributes = FileAttributes.Normal;
+            string tmp_file_path = Path.Combine (SparkleConfig.DefaultConfig.TmpPath, "hostkey.tmp");
+            File.WriteAllText (tmp_file_path, public_key + Environment.NewLine);
+
+            Process process = new Process () {
+                EnableRaisingEvents = true
+            };
+
+            process.StartInfo.WorkingDirectory       = SparkleConfig.DefaultConfig.TmpPath;
+            process.StartInfo.UseShellExecute        = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.CreateNoWindow         = true;
+
+            process.StartInfo.FileName  = "ssh-keygen";
+            process.StartInfo.Arguments = "-lf " + tmp_file_path;
+
+            process.Start ();
+
+            // Reading the standard output HAS to go before
+            // WaitForExit, or it will hang forever on output > 4096 bytes
+            string fingerprint = process.StandardOutput.ReadToEnd ().Trim ();
+            process.WaitForExit ();
+
+            try {
+                fingerprint = fingerprint.Substring (fingerprint.IndexOf (" ") + 1, 47);
+
+            } catch (Exception e) {
+                SparkleHelpers.DebugInfo ("Fetcher", "Not a valid fingerprint: " + e.Message);
+                return null;
+            }
+
+            File.Delete (tmp_file_path);
+
+            return fingerprint;
         }
+
+
+        private void AcceptHostKey (string host_key, bool warn)
+        {
+            string ssh_config_path       = Path.Combine (SparkleConfig.DefaultConfig.HomePath, ".ssh");
+            string known_hosts_file_path = Path.Combine (ssh_config_path, "known_hosts");
+
+            if (!File.Exists (known_hosts_file_path)) {
+                if (!Directory.Exists (ssh_config_path))
+                    Directory.CreateDirectory (ssh_config_path);
+
+                File.Create (known_hosts_file_path).Close ();
+            }
+
+            string host                 = RemoteUrl.Host;
+            string known_hosts          = File.ReadAllText (known_hosts_file_path);
+            string [] known_hosts_lines = File.ReadAllLines (known_hosts_file_path);
+
+            foreach (string line in known_hosts_lines) {
+                if (line.StartsWith (host + " "))
+                    return;
+            }
+
+            if (known_hosts.EndsWith ("\n"))
+                File.AppendAllText (known_hosts_file_path, host_key + "\n");
+            else
+                File.AppendAllText (known_hosts_file_path, "\n" + host_key + "\n");
+
+            SparkleHelpers.DebugInfo ("Auth", "Accepted host key for " + host);
+
+            if (warn)
+                this.warnings.Add ("The following host key has been accepted:\n" + GetFingerprint (host_key));
+        }
+
+
+        public static string GetBackend (string path)
+        {
+            string extension = Path.GetExtension (path);
+
+            if (!string.IsNullOrEmpty (extension)) {
+                extension       = extension.Substring (1);
+                char [] letters = extension.ToCharArray ();
+                letters [0]     = char.ToUpper (letters [0]);
+
+                return new string (letters);
+
+            } else {
+                return  "Git";
+            }
+        }
+
+
+        protected string [] ExcludeRules = new string [] {
+            // Various autosaving apps
+            "*.autosave",
+
+            // gedit and emacs
+            "*~",
+
+            // LibreOffice
+            ".~lock.*",
+
+            // Firefox and Chromium temporary download files
+            "*.part",
+            "*.crdownload",
+
+            // vi(m)
+            ".*.sw[a-z]",
+            "*.un~",
+            "*.swp",
+            "*.swo",
+
+            // KDE
+            ".directory",
+
+            // Mac OS X
+            ".DS_Store",
+            "Icon\r\r",
+            "._*",
+            ".Spotlight-V100",
+            ".Trashes",
+
+            // Omnigraffle
+            "*(Autosaved).graffle",
+
+            // Windows
+            "Thumbs.db",
+            "Desktop.ini",
+
+            // MS Office
+            "~*.tmp",
+            "~*.TMP",
+            "*~*.tmp",
+            "*~*.TMP",
+            "~*.ppt",
+            "~*.PPT",
+            "~*.pptx",
+            "~*.PPTX",
+            "~*.xls",
+            "~*.XLS",
+            "~*.xlsx",
+            "~*.XLSX",
+            "~*.doc",
+            "~*.DOC",
+            "~*.docx",
+            "~*.DOCX",
+
+            // CVS
+            "*/CVS/*",
+            ".cvsignore",
+            "*/.cvsignore",
+
+            // Subversion
+            "/.svn/*",
+            "*/.svn/*",
+
+            // Mercurial
+            "/.hg/*",
+            "*/.hg/*",
+            "*/.hgignore",
+
+            // Bazaar
+            "/.bzr/*",
+            "*/.bzr/*",
+            "*/.bzrignore"
+        };
     }
 }
