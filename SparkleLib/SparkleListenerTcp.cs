@@ -64,12 +64,11 @@ namespace SparkleLib {
                     int port = Server.Port;
 
                     if (port < 0)
-                        port = 1986;
+                        port = 80;
 
                     try {
                         lock (this.socket_lock) {
-                            this.socket = new Socket (AddressFamily.InterNetwork,
-                                SocketType.Stream, ProtocolType.Tcp) {
+                            this.socket = new Socket (AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp) {
                                 ReceiveTimeout = 5 * 1000,
                                 SendTimeout    = 5 * 1000
                             };
@@ -108,11 +107,12 @@ namespace SparkleLib {
                         try {
                             // This blocks the thread
                             int i = 0;
+                            int timeout = 300;
                             while (this.socket.Available < 1) {
                                 try {
                                     // We've timed out, let's ping the server to
                                     // see if the connection is still up
-                                    if (i == 180) {
+                                    if (i == timeout) {
                                         SparkleHelpers.DebugInfo ("ListenerTcp",
                                             "Pinging " + Server);
 
@@ -126,8 +126,7 @@ namespace SparkleLib {
                                             // 10057 means "Socket is not connected"
                                             throw new SocketException (10057);
 
-                                        SparkleHelpers.DebugInfo ("ListenerTcp",
-                                            "Received pong from " + Server);
+                                        SparkleHelpers.DebugInfo ("ListenerTcp", "Received pong from " + Server);
 
                                         i = 0;
                                         this.last_ping = DateTime.Now;
@@ -139,13 +138,12 @@ namespace SparkleLib {
                                         // system likely woke up from sleep and we want to
                                         // simulate a disconnect
                                         int sleepiness = DateTime.Compare (
-                                            this.last_ping.AddMilliseconds (180 * 1000 * 1.2),
+                                            this.last_ping.AddMilliseconds (timeout * 1000 * 1.2),
                                             DateTime.Now
                                         );
 
                                         if (sleepiness <= 0) {
-                                            SparkleHelpers.DebugInfo ("ListenerTcp",
-                                                "System woke up from sleep");
+                                            SparkleHelpers.DebugInfo ("ListenerTcp", "System woke up from sleep");
 
                                             // 10057 means "Socket is not connected"
                                             throw new SocketException (10057);
@@ -153,7 +151,7 @@ namespace SparkleLib {
                                     }
 
                                 // The ping failed: disconnect completely
-                                } catch (SocketException) {
+                                } catch (SocketException e) {
                                     this.is_connected  = false;
                                     this.is_connecting = false;
 
@@ -162,16 +160,15 @@ namespace SparkleLib {
                                         this.socket = null;
                                     }
 
-                                    OnDisconnected ("Ping timeout");
+                                    OnDisconnected ("Ping timeout: " + e.Message);
                                     return;
-
                                 }
 
                                 Thread.Sleep (1000);
                                 i++;
                             }
 
-                        } catch (ObjectDisposedException) {
+                        } catch (Exception) {
                             return;
                         }
 
@@ -207,9 +204,6 @@ namespace SparkleLib {
 
         protected override void AlsoListenToInternal (string folder_identifier)
         {
-            SparkleHelpers.DebugInfo ("ListenerTcp",
-                "Subscribing to channel " + folder_identifier + " on " + Server);
-
             string to_send = "subscribe " + folder_identifier + "\n";
 
             try {

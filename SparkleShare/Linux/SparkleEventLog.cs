@@ -40,7 +40,6 @@ namespace SparkleShare {
         private ScrolledWindow scrolled_window;
         private WebView web_view;
         private SparkleSpinner spinner;
-        private string link_status;
 
 
         // Short alias for the translations
@@ -52,8 +51,12 @@ namespace SparkleShare {
 
         public SparkleEventLog () : base ("")
         {
-            SetSizeRequest (480, 640);
-            SetPosition (WindowPosition.Center);
+            SetSizeRequest (480, (int) (Gdk.Screen.Default.Height * 0.8));
+
+            int x = (int) (Gdk.Screen.Default.Width * 0.61);
+            int y = (int) (Gdk.Screen.Default.Height * 0.5 - (HeightRequest * 0.5));
+            
+            Move (x, y);
 
             Resizable   = true;
             BorderWidth = 0;
@@ -64,6 +67,15 @@ namespace SparkleShare {
             DeleteEvent += delegate (object o, DeleteEventArgs args) {
                 Controller.WindowClosed ();
                 args.RetVal = true;
+            };
+            
+            KeyPressEvent += delegate (object o, KeyPressEventArgs args) {
+                if (args.Event.Key == Gdk.Key.Escape ||
+                    (args.Event.State == Gdk.ModifierType.ControlMask) &&
+                     args.Event.Key == Gdk.Key.w) {
+                    
+                    Controller.WindowClosed ();
+                }
             };
 
             this.size_label = new Label () {
@@ -85,22 +97,17 @@ namespace SparkleShare {
             this.content_wrapper = new EventBox ();
             this.scrolled_window = new ScrolledWindow ();
 
+            Gdk.Color white = new Gdk.Color();
+            Gdk.Color.Parse ("white", ref white);
+
+            this.content_wrapper.ModifyBg (StateType.Normal, white);
+
             this.web_view = new WebView () {
                 Editable = false
             };
 
-            this.web_view.HoveringOverLink += delegate (object o, WebKit.HoveringOverLinkArgs args) {
-                this.link_status = args.Link;
-            };
 
-            this.web_view.NavigationRequested += delegate (object o, WebKit.NavigationRequestedArgs args) {
-                if (args.Request.Uri == this.link_status)
-                    Controller.LinkClicked (args.Request.Uri);
-
-                // Don't follow HREFs (as this would cause a page refresh)
-                if (!args.Request.Uri.Equals ("file:"))
-                    args.RetVal = 1;
-            };
+            this.web_view.NavigationRequested += WebViewNavigationRequested;
 
             this.scrolled_window.Add (this.web_view);
             this.content_wrapper.Add (this.spinner);
@@ -111,18 +118,16 @@ namespace SparkleShare {
             this.layout_horizontal.PackStart (layout_sizes, true, true, 12);
 
             layout_vertical.PackStart (this.layout_horizontal, false, false, 0);
-            layout_vertical.PackStart (CreateShortcutsBar (), false, false, 0);
             layout_vertical.PackStart (this.content_wrapper, true, true, 0);
 
             Add (layout_vertical);
 
 
-            // Hook up the controller events
             Controller.HideWindowEvent += delegate {
                 Application.Invoke (delegate {
                     HideAll ();
-					
-					if (this.content_wrapper.Child != null)
+                    
+                    if (this.content_wrapper.Child != null)
                         this.content_wrapper.Remove (this.content_wrapper.Child);
                 });
             };
@@ -131,9 +136,6 @@ namespace SparkleShare {
                 Application.Invoke (delegate {
                     ShowAll ();
                     Present ();
-
-                    UpdateChooser (null);
-                    UpdateContent (null);
                 });
             };
 
@@ -170,6 +172,15 @@ namespace SparkleShare {
                 });
             };
         }
+        
+        
+        private void WebViewNavigationRequested (object o, WebKit.NavigationRequestedArgs args) {
+            Controller.LinkClicked (args.Request.Uri.Substring (7));
+
+            // Don't follow HREFs (as this would cause a page refresh)
+            if (!args.Request.Uri.Equals ("file:"))
+                args.RetVal = 1;
+        }
 
 
         public void UpdateChooser (string [] folders)
@@ -191,21 +202,21 @@ namespace SparkleShare {
 
             ListStore store = new ListStore (typeof (string));
 
-            store.AppendValues (_("All Projects"));
+            store.AppendValues (_("Summary"));
             store.AppendValues ("---");
-			
-			this.combo_box.Model  = store;
-			this.combo_box.Active = 0;
-			
-			int row = 2;
-       		foreach (string folder in folders) {
-				store.AppendValues (folder);
-				
-				if (folder.Equals (Controller.SelectedFolder))
-					this.combo_box.Active = row;
-				
-				row++;
-        	}
+            
+            this.combo_box.Model  = store;
+            this.combo_box.Active = 0;
+            
+            int row = 2;
+               foreach (string folder in folders) {
+                store.AppendValues (folder);
+                
+                if (folder.Equals (Controller.SelectedFolder))
+                    this.combo_box.Active = row;
+                
+                row++;
+            }
 
             this.combo_box.RowSeparatorFunc = delegate (TreeModel model, TreeIter iter) {
                 string item = (string) this.combo_box.Model.GetValue (iter, 0);
@@ -241,10 +252,10 @@ namespace SparkleShare {
 
                 if (html == null)
                     return;
-				
-				string pixmaps_path = IO.Path.Combine (SparkleUI.AssetsPath, "pixmaps");
-				string icons_path  = new string [] {SparkleUI.AssetsPath, "icons",
-                	"hicolor", "12x12", "status"}.Combine ();
+                
+                string pixmaps_path = IO.Path.Combine (SparkleUI.AssetsPath, "pixmaps");
+                string icons_path  = new string [] {SparkleUI.AssetsPath, "icons",
+                    "hicolor", "12x12", "status"}.Combine ();
 
                 html = html.Replace ("<!-- $body-font-size -->", (double) (Style.FontDescription.Size / 1024 + 3) + "px");
                 html = html.Replace ("<!-- $day-entry-header-font-size -->", (Style.FontDescription.Size / 1024 + 3) + "px");
@@ -257,24 +268,26 @@ namespace SparkleShare {
                 html = html.Replace ("<!-- $secondary-font-color -->", SparkleUIHelpers.GdkColorToHex (Style.Foreground (StateType.Insensitive)));
                 html = html.Replace ("<!-- $small-color -->", SparkleUIHelpers.GdkColorToHex (Style.Foreground (StateType.Insensitive)));
              
-				html = html.Replace ("<!-- $pixmaps-path -->", pixmaps_path);
+                html = html.Replace ("<!-- $pixmaps-path -->", pixmaps_path);
                 
-				html = html.Replace ("<!-- $document-added-background-image -->", 
-					"file://" + IO.Path.Combine (icons_path + "document-added.png"));
-				
-				html = html.Replace ("<!-- $document-edited-background-image -->", 
-					"file://" + IO.Path.Combine (icons_path + "document-edited.png"));
-				
-				html = html.Replace ("<!-- $document-deleted-background-image -->", 
-					"file://" + IO.Path.Combine (icons_path + "document-deleted.png"));
-				
-				html = html.Replace ("<!-- $document-moved-background-image -->", 
-					"file://" + IO.Path.Combine (icons_path + "document-moved.png"));
+                html = html.Replace ("<!-- $document-added-background-image -->", 
+                    "file://" + IO.Path.Combine (icons_path, "document-added.png"));
+
+                html = html.Replace ("<!-- $document-edited-background-image -->", 
+                    "file://" + IO.Path.Combine (icons_path, "document-edited.png"));
+                
+                html = html.Replace ("<!-- $document-deleted-background-image -->", 
+                    "file://" + IO.Path.Combine (icons_path, "document-deleted.png"));
+                
+                html = html.Replace ("<!-- $document-moved-background-image -->", 
+                    "file://" + IO.Path.Combine (icons_path, "document-moved.png"));
                         
                 
                 Application.Invoke (delegate {
                     this.spinner.Stop ();
-                    this.web_view.LoadString (html, null, null, "file://");
+                                this.web_view.NavigationRequested -= WebViewNavigationRequested;
+                    this.web_view.LoadHtmlString (html, "file://");
+                                this.web_view.NavigationRequested += WebViewNavigationRequested;
                     this.content_wrapper.Remove (this.content_wrapper.Child);
                     this.content_wrapper.Add (this.scrolled_window);
                     this.content_wrapper.ShowAll ();
@@ -282,50 +295,6 @@ namespace SparkleShare {
             }));
 
             thread.Start ();
-        }
-
-
-        private MenuBar CreateShortcutsBar ()
-        {
-            // Adds a hidden menubar that contains to enable keyboard
-            // shortcuts to close the log
-            MenuBar menu_bar = new MenuBar ();
-
-                MenuItem file_item = new MenuItem ("File");
-
-                    Menu file_menu = new Menu ();
-
-                        MenuItem close_1 = new MenuItem ("Close1");
-                        MenuItem close_2 = new MenuItem ("Close2");
-        
-                        // adds specific Ctrl+W and Esc key accelerators to Log Window
-                        AccelGroup accel_group = new AccelGroup ();
-                        AddAccelGroup (accel_group);
-
-                        // Close on Esc
-                        close_1.AddAccelerator ("activate", accel_group, new AccelKey (Gdk.Key.W,
-                            Gdk.ModifierType.ControlMask, AccelFlags.Visible));
-
-                        close_1.Activated += delegate { Controller.WindowClosed (); };
-
-                        // Close on Ctrl+W
-                        close_2.AddAccelerator ("activate", accel_group, new AccelKey (Gdk.Key.Escape,
-                            Gdk.ModifierType.None, AccelFlags.Visible));
-                        close_2.Activated += delegate { Controller.WindowClosed (); };
-
-                    file_menu.Append (close_1);
-                    file_menu.Append (close_2);
-
-                file_item.Submenu = file_menu;
-
-            menu_bar.Append (file_item);
-
-            // Hacky way to hide the menubar, but the accellerators
-            // will simply be disabled when using Hide ()
-            menu_bar.HeightRequest = 1;
-            menu_bar.ModifyBg (StateType.Normal, Style.Background (StateType.Normal));
-
-            return menu_bar;
         }
     }
 }
