@@ -1,3 +1,12 @@
+sparkleshare (0.9.0-1) unstable; urgency=low
+
+  * [50bd5da] Imported Upstream version 0.9.0
+  * [02f9752] debian/patches: Remove both patches.
+    They are now upstream.
+  * [6423c35] debian/docs: Re-add README.md and fix location of TRADEMARK
+
+ -- Carlos Martín Nieto <carlos@cmartin.tk>  Sat, 30 Jun 2012 04:31:27 +0800
+
 sparkleshare (0.8.4-1) unstable; urgency=low
 
   [ Jo Shields ]
