@@ -1,9 +1,9 @@
 dnl Process this file with autoconf to produce a configure script.
 m4_define([sparkleshare_version],
-	[0.8.4])
+	[0.9.0])
 
 m4_define([sparkleshare_asm_version],
-	[0.8.4])
+	[0.9.0])
 
 AC_PREREQ([2.54])
 AC_INIT([SparkleShare], sparkleshare_version)
@@ -21,23 +21,14 @@ fi
 
 AC_SUBST([ACLOCAL_AMFLAGS], ["-I build/m4/sparkleshare -I build/m4/shamrock -I build/m4/shave \${ACLOCAL_FLAGS}"])
 
-dnl i18n
-IT_PROG_INTLTOOL([0.40.6])
-GETTEXT_PACKAGE=sparkleshare
-AC_SUBST(GETTEXT_PACKAGE)
-AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [Gettext package])
-
 SHAMROCK_EXPAND_LIBDIR
 SHAMROCK_EXPAND_BINDIR
 SHAMROCK_EXPAND_DATADIR
 
-dnl Help files
-SHAMROCK_CHECK_GNOME_DOC_UTILS(0.17.3)
-
 AC_PROG_INSTALL
 
 dnl Mono and gmcs
-SHAMROCK_CHECK_MONO_MODULE(2.2)
+SHAMROCK_CHECK_MONO_MODULE(2.8)
 SHAMROCK_FIND_MONO_RUNTIME
     
 PKG_CHECK_EXISTS([mono >= 2.8],
@@ -46,13 +37,8 @@ SHAMROCK_CHECK_MONO_4_0_GAC_ASSEMBLIES([
     System
     System.Security
     Mono.Posix
-])],
-[SHAMROCK_FIND_MONO_2_0_COMPILER
-SHAMROCK_CHECK_MONO_2_0_GAC_ASSEMBLIES([
-    System
-    System.Security
-    Mono.Posix
-])])
+])]
+)
 
 SPARKLESHARE_CHECK_NOTIFY_SHARP
 
@@ -87,17 +73,13 @@ dnl package checks, common for all configs
 
 SPARKLESHARE_CHECK_GTK_SHARP
 
-AC_ARG_ENABLE(gtkui,
-	AS_HELP_STRING([--disable-gtkui], [Do not build the Gtk+ user interface]),
-	[ enable_gtkui=no ], [ enable_gtkui=yes ])
-
 AC_ARG_ENABLE(appindicator,
 	AS_HELP_STRING([--enable-appindicator[=@<:@no/auto/yes@:>@]],[Build support for application indicators ]),
 	[enable_appindicator=$enableval],
 	[enable_appindicator="auto"])
 
-AM_CONDITIONAL(ENABLE_GTKUI, test x$enable_gtkui = xyes)
-if test "x$enable_gtkui" = "xyes" ; then
+OSNAME=`uname -s`
+if test "$OSNAME" = "Linux" ; then
 	dnl check for webkit-sharp
 	PKG_CHECK_MODULES(WEBKIT_SHARP, webkit-sharp-1.0, have_webkit_sharp=yes, have_webkit_sharp=no)
 	if test "x$have_webkit_sharp" = "xno" ; then
@@ -150,21 +132,24 @@ build/Makefile
 build/m4/Makefile
 build/m4/shave/shave
 build/m4/shave/shave-libtool
-data/Makefile
-data/icons/Makefile
-data/html/Makefile
-data/plugins/Makefile
 SparkleLib/AssemblyInfo.cs
 SparkleLib/Defines.cs
 SparkleLib/Makefile
 SparkleLib/Git/Makefile
+SparkleShare/Common/Makefile
+SparkleShare/Common/HTML/Makefile
+SparkleShare/Common/Plugins/Makefile
+SparkleShare/Common/Pixmaps/Makefile
 SparkleShare/Linux/Makefile
+SparkleShare/Linux/Pixmaps/Makefile
+SparkleShare/Linux/Pixmaps/icons/Makefile
+SparkleShare/Linux/Pixmaps/icons/ubuntu-mono-dark/Makefile
+SparkleShare/Linux/Pixmaps/icons/ubuntu-mono-light/Makefile
 SparkleShare/Linux/sparkleshare
 SparkleShare/Linux/Nautilus/Makefile
 SparkleShare/Linux/Nautilus/sparkleshare-nautilus-extension.py
 SparkleShare/Linux/Nautilus/sparkleshare-nautilus3-extension.py
 SparkleShare/Makefile
-po/Makefile.in
 Makefile
 ])
 

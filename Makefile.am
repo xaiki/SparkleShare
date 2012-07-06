@@ -1,13 +1,14 @@
-basedirs = build SparkleLib SparkleLib/Git data po
+basedirs = build SparkleLib SparkleLib/Git
 
 SUBDIRS = $(basedirs) $(GUISUBDIRS)
 DIST_SUBDIRS = $(basedirs) SparkleShare
 
 EXTRA_DIST = \
-	gnome-doc-utils.make \
-	LICENSE \
-	TRADEMARK \
-	AUTHORS
+	NEWS \
+        README.md \
+	legal/LICENSE \
+	legal/TRADEMARK \
+	legal/AUTHORS
 
 DISTCLEANFILES = \
 	intltool-extract        \

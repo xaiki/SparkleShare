@@ -1,4 +1,24 @@
-0.8.4 for Linux, Mac and Window (Sun Mar 18 2012)
+0.9.0 for Linux, Mac and Windows (Wed Jun 27 2012)
+
+	Hylke:
+	- Expeimental client side encryption using OpenSSL's AES
+	- Allow setting custom paths in config.xml
+	- Ship host keys of default plugins and verify on project add
+	- Don't touch the user's ~/.ssh/config to configure SSH
+	- Make fetching remote project's history optional
+	- Cached logs for faster event log loading/switching
+	- Sort event log file entries by time
+	- Change default notification service to use port 80
+	- Show backend error message(s) when on failed project add
+	- Update Growl framework to version 1.3.1: A separate Growl 
+	  is no longer needed and ready for Mountain Lion's notifications
+	- Monochrome appindicator icons on Ubuntu
+
+	Travis:
+	- Rewrote the notification service, now more robust and reliable
+
+
+0.8.4 for Linux, Mac and Windows (Sun Mar 18 2012)
 
 	Hylke:
 	- Show initial sync progress in taskbar item on Windows 7

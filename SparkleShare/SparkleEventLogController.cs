@@ -72,7 +72,7 @@ namespace SparkleShare {
 
                     // A short delay is less annoying than
                     // a flashing window
-					int delay = 1000;
+					int delay = 500;
 					
                     if (watch.ElapsedMilliseconds < delay)
                         Thread.Sleep (delay - (int) watch.ElapsedMilliseconds);
@@ -155,6 +155,14 @@ namespace SparkleShare {
         public SparkleEventLogController ()
         {
             Program.Controller.ShowEventLogWindowEvent += delegate {
+                if (this.selected_folder == null) {
+                    if (UpdateChooserEvent != null)
+                        UpdateChooserEvent (Folders);
+
+                    if (UpdateContentEvent != null)
+                        UpdateContentEvent (HTML);
+                }
+
                 if (ShowWindowEvent != null)
                     ShowWindowEvent ();
             };
@@ -199,9 +207,11 @@ namespace SparkleShare {
 
         public void LinkClicked (string url)
         {
+            url = url.Replace ("%20", " ");
+        
             if (url.StartsWith (Path.VolumeSeparatorChar.ToString ()) ||
 			    url.Substring (1, 1).Equals (":")) {
-				
+
                 Program.Controller.OpenFile (url);
             }
         }

@@ -16,8 +16,9 @@
 
 
 using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Threading;
 
@@ -29,35 +30,22 @@ namespace SparkleLib.Git {
     public class SparkleFetcher : SparkleFetcherBase {
 
         private SparkleGit git;
+        private string crypto_salt = "e0d592768d7cf99a"; // TODO: Make unique per repo
 
 
-        public SparkleFetcher (string server, string remote_path, string target_folder) :
-            base (server, remote_path, target_folder)
+        public SparkleFetcher (string server, string required_fingerprint, string remote_path,
+            string target_folder, bool fetch_prior_history) : base (server, required_fingerprint, remote_path,
+                target_folder, fetch_prior_history)
         {
-			remote_path = remote_path.Trim ("/".ToCharArray ());
-			
-            if (server.EndsWith ("/"))
-                server = server.Substring (0, server.Length - 1);
-
-            if (!remote_path.StartsWith ("/"))
-                remote_path = "/" + remote_path;
-
-            Uri uri;
-
-            try {
-				uri = new Uri (server + remote_path);
-
-            } catch (UriFormatException) {
-				uri = new Uri ("ssh://" + server + remote_path);
-            }
-
+            Uri uri = RemoteUrl;
 
             if (!uri.Scheme.Equals ("ssh") &&
+                !uri.Scheme.Equals ("https") &&
+                !uri.Scheme.Equals ("http") &&
                 !uri.Scheme.Equals ("git")) {
-				
-				uri = new Uri ("ssh://" + uri);
-            }
 
+                uri = new Uri ("ssh://" + uri);
+            }
 
             if (uri.Host.Equals ("gitorious.org")) {
                 if (!uri.AbsolutePath.Equals ("/") &&
@@ -76,27 +64,40 @@ namespace SparkleLib.Git {
                 uri = new Uri ("ssh://git@gnome.org/git" + uri.AbsolutePath);
 
             } else {
-                if (string.IsNullOrEmpty (uri.UserInfo)) {
-					if (uri.Port == -1)
-						uri = new Uri (uri.Scheme + "://git@" + uri.Host + uri.AbsolutePath);
-					else
-						uri = new Uri (uri.Scheme + "://git@" + uri.Host + ":" + uri.Port + uri.AbsolutePath);
+                if (string.IsNullOrEmpty (uri.UserInfo) &&
+                    !uri.Scheme.Equals ("https") &&
+                    !uri.Scheme.Equals ("http")) {
+
+                    if (uri.Port == -1)
+                        uri = new Uri (uri.Scheme + "://git@" + uri.Host + uri.AbsolutePath);
+                    else
+                        uri = new Uri (uri.Scheme + "://git@" + uri.Host + ":" + uri.Port + uri.AbsolutePath);
                 }
             }
 
-
             TargetFolder = target_folder;
-            RemoteUrl    = uri.ToString ();
+            RemoteUrl    = uri;
         }
 
 
         public override bool Fetch ()
         {
-            this.git = new SparkleGit (SparkleConfig.DefaultConfig.TmpPath,
-                "clone " +
-                "--progress " + // Redirects progress stats to standarderror
-                "\"" + RemoteUrl + "\" \"" + TargetFolder + "\"");
-            
+            if (FetchPriorHistory) {
+                this.git = new SparkleGit (SparkleConfig.DefaultConfig.TmpPath,
+                    "clone " +
+                    "--progress " +
+                    "--no-checkout " +
+                    "\"" + RemoteUrl + "\" \"" + TargetFolder + "\"");
+
+            } else {
+                    this.git = new SparkleGit (SparkleConfig.DefaultConfig.TmpPath,
+                    "clone " +
+                    "--progress " +
+                    "--no-checkout " +
+                    "--depth=1 " +
+                    "\"" + RemoteUrl + "\" \"" + TargetFolder + "\"");
+            }
+
             this.git.StartInfo.RedirectStandardError = true;
             this.git.Start ();
 
@@ -123,8 +124,18 @@ namespace SparkleLib.Git {
                     else
                         // "Compressing objects" stage
                         number = (number / 100 * 20);
+
+                } else {
+                    SparkleHelpers.DebugInfo ("Fetcher", line);
+
+                    if (line.StartsWith ("fatal:", true, null) ||
+                        line.StartsWith ("error:", true, null)) {
+
+                        base.errors.Add (line);
+                    }
                 }
-                
+
+
                 if (number >= percentage) {
                     percentage = number;
 
@@ -136,23 +147,25 @@ namespace SparkleLib.Git {
             }
             
             this.git.WaitForExit ();
+
             SparkleHelpers.DebugInfo ("Git", "Exit code: " + this.git.ExitCode);
 
             if (this.git.ExitCode == 0) {
                 while (percentage < 100) {
                     percentage += 25;
-    
+
                     if (percentage >= 100)
                         break;
-    
+
                     Thread.Sleep (500);
                     base.OnProgressChanged (percentage);
                 }
-    
+
                 base.OnProgressChanged (100);
 
                 InstallConfiguration ();
                 InstallExcludeRules ();
+
                 AddWarnings ();
 
                 return true;
@@ -163,38 +176,125 @@ namespace SparkleLib.Git {
         }
 
 
-        private void AddWarnings ()
-        {
-            SparkleGit git = new SparkleGit (SparkleConfig.DefaultConfig.TmpPath,
-                "config --global core.excludesfile");
+        public override bool IsFetchedRepoEmpty {
+            get {
+                SparkleGit git = new SparkleGit (TargetFolder, "rev-parse HEAD");
+                git.Start ();
 
-            git.Start ();
+                // Reading the standard output HAS to go before
+                // WaitForExit, or it will hang forever on output > 4096 bytes
+                git.StandardOutput.ReadToEnd ();
+                git.WaitForExit ();
+
+                return (git.ExitCode != 0);
+            }
+        }
+
+
+        public override void EnableFetchedRepoCrypto (string password)
+        {
+            // Define the crypto filter in the config
+            string repo_config_file_path = SparkleHelpers.CombineMore (TargetFolder, ".git", "config");
+            string config = File.ReadAllText (repo_config_file_path);
+
+            string n = Environment.NewLine;
+
+            config += "[filter \"crypto\"]" + n +
+                "\tsmudge = openssl enc -d -aes-256-cbc -base64 -S " + this.crypto_salt + " -pass file:.git/password" + n +
+                "\tclean  = openssl enc -e -aes-256-cbc -base64 -S " + this.crypto_salt + " -pass file:.git/password" + n;
+
+            File.WriteAllText (repo_config_file_path, config);
+
+
+            // Pass all files through the crypto filter
+            string git_attributes_file_path = SparkleHelpers.CombineMore (
+                TargetFolder, ".git", "info", "attributes");
+
+            File.WriteAllText (git_attributes_file_path, "* filter=crypto");
+
+
+            // Store the password
+            string password_file_path = SparkleHelpers.CombineMore (TargetFolder, ".git", "password");
+            File.WriteAllText (password_file_path, password.Trim ());
+        }
+
+
+        public override bool IsFetchedRepoPasswordCorrect (string password)
+        {
+            string password_check_file_path = Path.Combine (TargetFolder, ".sparkleshare");
+
+            if (!File.Exists (password_check_file_path)) {
+                SparkleGit git = new SparkleGit (TargetFolder, "show HEAD:.sparkleshare");
+                git.Start ();
+
+                // Reading the standard output HAS to go before
+                // WaitForExit, or it will hang forever on output > 4096 bytes
+                string output = git.StandardOutput.ReadToEnd ();
+                git.WaitForExit ();
+
+                if (git.ExitCode != 0) {
+                    return false;
+
+                } else {
+                    File.WriteAllText (password_check_file_path, output);
+                }
+            }
+
+            Process process = new Process () {
+                EnableRaisingEvents = true
+            };
+
+            process.StartInfo.WorkingDirectory       = TargetFolder;
+            process.StartInfo.UseShellExecute        = false;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.CreateNoWindow         = true;
+
+            process.StartInfo.FileName  = "openssl";
+            process.StartInfo.Arguments = "enc -d -aes-256-cbc -base64 -S " + this.crypto_salt +
+                " -pass pass:\"" + password + "\" -in " + password_check_file_path;
+
+            process.Start ();
 
             // Reading the standard output HAS to go before
             // WaitForExit, or it will hang forever on output > 4096 bytes
-            string output = git.StandardOutput.ReadToEnd ().Trim ();
-            git.WaitForExit ();
+            process.StandardOutput.ReadToEnd ();
+            process.WaitForExit ();
 
-            if (string.IsNullOrEmpty (output)) {
-                return;
+            if (process.ExitCode == 0) {
+                File.Delete (password_check_file_path);
+                return true;
 
             } else {
-                Warnings = new string [] {
-                    string.Format ("You seem to have configured a system wide ‘gitignore’ file. " +
-                                   "This may affect SparkleShare files:\n\n{0}", output)
-                };
+                return false;
             }
         }
 
 
         public override void Stop ()
         {
-            if (this.git != null && !this.git.HasExited) {
+            try {
+                this.git.Close ();
                 this.git.Kill ();
                 this.git.Dispose ();
-            }
 
-            Dispose ();
+            } catch (Exception e) {
+                SparkleHelpers.DebugInfo ("Fetcher", "Failed to dispose properly: " + e.Message);
+            }
+        }
+
+
+        public override void Complete ()
+        {
+            if (IsFetchedRepoEmpty)
+                return;
+
+            SparkleGit git = new SparkleGit (TargetFolder, "checkout HEAD");
+            git.Start ();
+
+            // Reading the standard output HAS to go before
+            // WaitForExit, or it will hang forever on output > 4096 bytes
+            git.StandardOutput.ReadToEnd ();
+            git.WaitForExit ();
         }
 
 
@@ -203,13 +303,16 @@ namespace SparkleLib.Git {
         private void InstallConfiguration ()
         {
             string repo_config_file_path = SparkleHelpers.CombineMore (TargetFolder, ".git", "config");
-            string config = String.Join (Environment.NewLine, File.ReadAllLines (repo_config_file_path));
+            string config = File.ReadAllText (repo_config_file_path);
 
             string n = Environment.NewLine;
 
             config = config.Replace ("[core]" + n,
-                "[core]" + n + "\tquotepath = false" + n + // Show special characters in the logs
+                "[core]" + n +
+                "\tquotepath = false" + n + // Show special characters in the logs
                 "\tpackedGitLimit = 128m" + n +
+                "\tautocrlf = false" + n +
+                "\tsafecrlf = false" + n +
                 "\tpackedGitWindowSize = 128m" + n);
 
             config = config.Replace ("[remote \"origin\"]" + n,
@@ -226,11 +329,8 @@ namespace SparkleLib.Git {
             config = config.Replace ("filemode = true", "filemode = false");
 
             // Write the config to the file
-            TextWriter writer = new StreamWriter (repo_config_file_path);
-            writer.WriteLine (config);
-            writer.Close ();
-
-            SparkleHelpers.DebugInfo ("Config", "Added configuration to '" + repo_config_file_path + "'");
+            File.WriteAllText (repo_config_file_path, config);
+            SparkleHelpers.DebugInfo ("Fetcher", "Added configuration to '" + repo_config_file_path + "'");
         }
 
 
@@ -343,6 +443,27 @@ namespace SparkleLib.Git {
                 writer.WriteLine ("*.TAR -delta");
 
             writer.Close ();
+        }
+
+
+        private void AddWarnings ()
+        {
+            /*
+            SparkleGit git = new SparkleGit (TargetFolder,
+                "config --global core.excludesfile");
+
+            git.Start ();
+
+            // Reading the standard output HAS to go before
+            // WaitForExit, or it will hang forever on output > 4096 bytes
+            string output = git.StandardOutput.ReadToEnd ().Trim ();
+            git.WaitForExit ();
+
+            if (string.IsNullOrEmpty (output))
+                return;
+            else
+                this.warnings.Add ("You seem to have a system wide ‘gitignore’ file, this may affect SparkleShare files.");
+            */
         }
     }
 }

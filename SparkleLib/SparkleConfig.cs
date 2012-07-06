@@ -29,36 +29,25 @@ namespace SparkleLib {
             Environment.GetFolderPath (Environment.SpecialFolder.ApplicationData),
                 "sparkleshare");
 
-        // TODO: declare elsewhere
         public static SparkleConfig DefaultConfig = new SparkleConfig (default_config_path, "config.xml");
         public static bool DebugMode = true;
-
 
         public string FullPath;
         public string TmpPath;
         public string LogFilePath;
 
+
         public string HomePath {
             get {
-                if (GetConfigOption ("home_path") != null) {
+                if (GetConfigOption ("home_path") != null)
                     return GetConfigOption ("home_path");
-
-                } else if (SparkleHelpers.IsWindows) {
-                    try {
-                        Environment.SpecialFolder folder =
-                            (Environment.SpecialFolder) Enum.Parse (
-                                typeof(Environment.SpecialFolder), "UserProfile");
-
-                        return (Environment.GetFolderPath (folder));
-
-                    } catch {
-                        return Environment.GetFolderPath (Environment.SpecialFolder.Personal);
-                    }
-                } else
+                else if (SparkleHelpers.IsWindows)
+                    return Environment.GetFolderPath (Environment.SpecialFolder.UserProfile);
+                else
                     return Environment.GetFolderPath (Environment.SpecialFolder.Personal);
-
             }
         }
+
 
         public string FoldersPath {
             get {
@@ -68,6 +57,7 @@ namespace SparkleLib {
                     return Path.Combine (HomePath, "SparkleShare");
             }
         }
+
 
         public SparkleConfig (string config_path, string config_file_name)
         {
@@ -86,7 +76,6 @@ namespace SparkleLib {
                     Directory.Move (old_path, new_path);
 
                     Console.WriteLine ("Migrated SparkleShare folder to %USERPROFILE%");
-
                 }
 
             } catch (Exception e) {
@@ -95,14 +84,14 @@ namespace SparkleLib {
             }
 
             FullPath    = Path.Combine (config_path, config_file_name);
-            LogFilePath = Path.Combine (config_path, "debug.log");
+            LogFilePath = Path.Combine (config_path, "debug.txt");
 
             if (File.Exists (LogFilePath)) {
                 try {
                     File.Delete (LogFilePath);
 
                 } catch (Exception) {
-                    // Don't delete the debug.log if 'tail' is reading it
+                    // Don't delete the debug.log if, for example, 'tail' is reading it
                 }
             }
 
@@ -137,6 +126,7 @@ namespace SparkleLib {
             } finally {
                 Load (FullPath);
                 TmpPath = Path.Combine (FoldersPath, ".tmp");
+                Directory.CreateDirectory (TmpPath);
             }
         }
 
@@ -204,64 +194,9 @@ namespace SparkleLib {
                 email_node.InnerText = user.Email;
 
                 Save ();
-
-                // ConfigureSSH ();
             }
         }
 
-/*
-        private void ConfigureSSH ()
-        {
-            if (User.Email.Equals ("Unknown"))
-                return;
-
-            string path = Environment.GetFolderPath (Environment.SpecialFolder.Personal);
-
-            if (!(SparkleBackend.Platform == PlatformID.Unix ||
-                  SparkleBackend.Platform == PlatformID.MacOSX)) {
-
-                path = Environment.ExpandEnvironmentVariables ("%HOMEDRIVE%%HOMEPATH%");
-            }
-
-            string ssh_config_path      = Path.Combine (path, ".ssh");
-            string ssh_config_file_path = SparkleHelpers.CombineMore (path, ".ssh", "config");
-
-            string ssh_key_path = SparkleHelpers.NormalizeSeparatorsToOS(
-                Path.Combine(SparkleConfig.ConfigPath, "sparkleshare." + User.Email + ".key"));
-            if (SparkleHelpers.IsWindows && ssh_key_path.IndexOf(' ') >= 0)
-            {
-                ssh_key_path = "\"" + ssh_key_path + "\"";
-            }
-            string ssh_config = "IdentityFile " + ssh_key_path;
-
-            if (!Directory.Exists (ssh_config_path))
-                Directory.CreateDirectory (ssh_config_path);
-
-            if (File.Exists (ssh_config_file_path)) {
-                string current_config = File.ReadAllText (ssh_config_file_path);
-                if (current_config.Contains (ssh_config))
-                    return;
-
-                if (current_config.EndsWith ("\n\n"))
-                    ssh_config = "# SparkleShare's key\n" + ssh_config;
-                else if (current_config.EndsWith ("\n"))
-                    ssh_config = "\n# SparkleShare's key\n" + ssh_config;
-                else
-                    ssh_config = "\n\n# SparkleShare's key\n" + ssh_config;
-
-                TextWriter writer = File.AppendText (ssh_config_file_path);
-                writer.Write (ssh_config + "\n");
-                writer.Close ();
-
-            } else {
-                File.WriteAllText (ssh_config_file_path, ssh_config);
-            }
-
-            Chmod644 (ssh_config_file_path);
-
-            SparkleHelpers.DebugInfo ("Config", "Added key to " + ssh_config_file_path);
-        }
-*/
 
         public List<string> Folders {
             get {
@@ -309,13 +244,6 @@ namespace SparkleLib {
         }
 
 
-        public bool FolderExists (string name)
-        {
-            XmlNode folder = GetFolder (name);
-            return (folder != null);
-        }
-
-
         public string GetBackendForFolder (string name)
         {
             return GetFolderValue (name, "backend");
@@ -345,6 +273,7 @@ namespace SparkleLib {
             }
 
             Save ();
+
             return true;
         }
 
@@ -365,47 +294,9 @@ namespace SparkleLib {
         }
 
 
-        public List<string> Hosts {
-            get {
-                List<string> hosts = new List<string> ();
-
-                foreach (XmlNode node_folder in SelectNodes ("/sparkleshare/folder")) {
-                    Uri uri = new Uri (node_folder ["url"].InnerText);
-
-                    if (!hosts.Contains (uri.Host))
-                        hosts.Add (uri.Host);
-                }
-
-              return hosts;
-           }
-        }
-
-
-        public List<string> HostsWithUsername {
-            get {
-                List<string> hosts = new List<string> ();
-
-                foreach (XmlNode node_folder in SelectNodes ("/sparkleshare/folder")) {
-                    try {
-                        Uri uri = new Uri (node_folder ["url"].InnerText);
-
-                        if (uri.UserInfo != "git" && !hosts.Contains (uri.UserInfo + "@" + uri.Host))
-                            hosts.Add (uri.UserInfo + "@" + uri.Host);
-
-                    } catch (UriFormatException) {
-                        SparkleHelpers.DebugInfo ("Config",
-                            "Ignoring badly formatted URI: " + node_folder ["url"].InnerText);
-                    }
-                }
-
-              return hosts;
-           }
-        }
-
-
         private XmlNode GetFolder (string name)
         {
-            return SelectSingleNode (String.Format("/sparkleshare/folder[name='{0}']", name));
+            return SelectSingleNode (string.Format ("/sparkleshare/folder[name=\"{0}\"]", name));
         }
 
 
@@ -460,23 +351,14 @@ namespace SparkleLib {
             Save (FullPath);
             SparkleHelpers.DebugInfo ("Config", "Updated \"" + FullPath + "\"");
         }
-
-
-        private void Chmod644 (string file_path)
-        {
-            // Hack to be able to set the permissions on a file
-            // that OpenSSH still likes without resorting to Mono.Unix
-            FileInfo file_info   = new FileInfo (file_path);
-            file_info.Attributes = FileAttributes.ReadOnly;
-            file_info.Attributes = FileAttributes.Normal;
-        }
     }
 
 
     public class ConfigFileNotFoundException : Exception {
 
-        public ConfigFileNotFoundException (string message) :
-            base (message) { }
+        public ConfigFileNotFoundException (string message) : base (message)
+        {
+        }
     }
 }
 

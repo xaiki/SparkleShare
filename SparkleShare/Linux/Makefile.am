@@ -1,4 +1,5 @@
-SUBDIRS =	Nautilus
+SUBDIRS = Nautilus \
+	Pixmaps
 
 ASSEMBLY = SparkleShare
 TARGET = exe
@@ -17,7 +18,6 @@ SOURCES =  \
 	../SparkleEventLogController.cs \
 	../SparkleExtensions.cs \
 	../SparkleInvite.cs \
-	../SparkleOptions.cs \
 	../SparklePlugin.cs \
 	../SparkleSetupController.cs \
 	../SparkleStatusIconController.cs \
