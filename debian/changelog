@@ -1,3 +1,9 @@
+sparkleshare (0.9.0-2~slcfk0) unstable; urgency=low
+
+  * Add slcfk hack
+
+ -- Niv Sardi <xaiki@debian.org>  Sun, 22 Jul 2012 01:54:34 -0300
+
 sparkleshare (0.9.0-1) unstable; urgency=low
 
   * [50bd5da] Imported Upstream version 0.9.0
@@ -84,7 +90,7 @@ sparkleshare (0.4.0-2) experimental; urgency=low
 sparkleshare (0.4.0-1) experimental; urgency=low
 
   * [8a32190] Imported Upstream version 0.4.0
-  * [53a5447] Remove 
+  * [53a5447] Remove
     0002-Use-SparkleHelpers-method-instead-of-4.0-only-librar.patch
   * [e9f220f] Don't run 'make check'
   * [d6970b8] Add shebang to the nautilus3 extension

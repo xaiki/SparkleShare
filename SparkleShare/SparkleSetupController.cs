@@ -54,7 +54,7 @@ namespace SparkleShare {
 
         public event ChangePageEventHandler ChangePageEvent;
         public delegate void ChangePageEventHandler (PageType page, string [] warnings);
-        
+
         public event UpdateProgressBarEventHandler UpdateProgressBarEvent;
         public delegate void UpdateProgressBarEventHandler (double percentage);
 
@@ -146,13 +146,18 @@ namespace SparkleShare {
                     local_plugins_count++;
                 }
 
+            bool SLCFKFound = false;
             // ...system plugins after that...
             if (Directory.Exists (Program.Controller.PluginsPath)) {
                 foreach (string xml_file_path in Directory.GetFiles (Program.Controller.PluginsPath, "*.xml")) {
-                    // ...and "Own server" at the very top
-                    if (xml_file_path.EndsWith ("own-server.xml")) {
+                    // ...and "SLCFK" at the very top
+                    if (xml_file_path.EndsWith ("slcfk.xml")) {
                         Plugins.Insert (0, new SparklePlugin (xml_file_path));
-
+                        SLCFKFound = true;
+                    }
+                    // ...and "Own server" at the (almost) very top
+                    else if (xml_file_path.EndsWith ("own-server.xml")) {
+                        Plugins.Insert (SLCFKFound?1:0, new SparklePlugin (xml_file_path));
                     } else if (xml_file_path.EndsWith ("ssnet.xml")) {
                         // Plugins.Insert ((local_plugins_count + 1), new SparklePlugin (xml_file_path)); TODO: Skip this plugin for now
 
@@ -180,7 +185,7 @@ namespace SparkleShare {
                 if (page_type == PageType.CryptoSetup || page_type == PageType.CryptoPassword) {
                     if (ChangePageEvent != null)
                         ChangePageEvent (page_type, null);
-                    
+
                     return;
                 }
 
@@ -209,7 +214,7 @@ namespace SparkleShare {
                         if (this.current_page == PageType.Error ||
                             this.current_page == PageType.Finished ||
                             this.current_page == PageType.None) {
-                            
+
                             if (ChangePageEvent != null)
                                 ChangePageEvent (PageType.Add, null);
                         }
@@ -270,13 +275,13 @@ namespace SparkleShare {
                 UpdateSetupContinueButtonEvent (fields_valid);
         }
 
-        
+
         public void SetupPageCancelled ()
         {
             Program.Controller.Quit ();
         }
-        
-        
+
+
         public void SetupPageCompleted (string full_name, string email)
         {
             Program.Controller.CurrentUser = new SparkleUser (full_name, email);
@@ -434,10 +439,10 @@ namespace SparkleShare {
 
                 try {
                     string address = remote_url.Replace (uri.AbsolutePath, "");
-    
+
                     new_plugin = SparklePlugin.Create (
                         uri.Host, address, address, "", "", "/path/to/project");
-    
+
                     if (new_plugin != null) {
                         Plugins.Insert (1, new_plugin);
                         SparkleHelpers.DebugInfo ("Controller", "Added plugin for " + uri.Host);
@@ -460,7 +465,7 @@ namespace SparkleShare {
         {
             SyncingFolder = "";
             PreviousUrl   = remote_url;
-           
+
             if (ChangePageEvent != null)
                 ChangePageEvent (PageType.Error, errors);
 

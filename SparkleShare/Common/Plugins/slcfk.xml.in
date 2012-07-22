@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sparkleshare>
+  <plugin>
+    <info>
+        <_name>Software Libre con Cristina</_name>
+        <_description>SparkleShare SLconCFK</_description>
+        <icon>slcfk.png</icon>
+        <backend>Git</backend>
+        <fingerprint>7e:6b:c0:55:67:a1:8e:be:65:f1:83:9d:15:59:38:3b</fingerprint>
+    </info>
+    <address>
+      <value>ssh://git@git.softwarelibreconcfk.com.ar/</value>
+      <example></example>
+    </address>
+    <path>
+      <value></value>
+      <_example>/SparkleShare</_example>
+    </path>
+  </plugin>
+</sparkleshare>

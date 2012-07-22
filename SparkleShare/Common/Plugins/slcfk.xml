@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sparkleshare>
+  <plugin>
+    <info>
+        <name>Software Libre con Cristina</name>
+        <name xml:lang="de">Software Libre con Cristina</name>
+        <name xml:lang="el">Software Libre con Cristina</name>
+        <name xml:lang="es">Software Libre con Cristina</name>
+        <name xml:lang="fr">Software Libre con Cristina</name>
+        <name xml:lang="it">Software Libre con Cristina</name>
+        <name xml:lang="ja">Software Libre con Cristina</name>
+        <name xml:lang="nl">Software Libre con Cristina</name>
+        <name xml:lang="pl">Software Libre con Cristina</name>
+        <name xml:lang="pt_BR">Software Libre con Cristina</name>
+        <name xml:lang="ru">Software Libre con Cristina</name>
+        <name xml:lang="sv">Software Libre con Cristina</name>
+        <name xml:lang="zh_CN">Software Libre con Cristina</name>
+        <description>Collaborate on projects hosted on Software Libre con Cristina</description>
+        <icon>slcfk.png</icon>
+        <backend>Git</backend>
+        <fingerprint>7e:6b:c0:55:67:a1:8e:be:65:f1:83:9d:15:59:38:3b</fingerprint>
+    </info>
+    <address>
+      <value>ssh://git@git.softwarelibreconcfk.com.ar/</value>
+      <example/>
+    </address>
+    <path>
+      <value>/SLconCFK-Documentos</value>
+      <example/>
+    </path>
+  </plugin>
+</sparkleshare>

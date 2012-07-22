@@ -4,7 +4,8 @@ dist_plugins_in_files = \
     gitorious.xml.in \
     gnome.xml.in \
     ssnet.xml.in \
-    own-server.xml.in
+    own-server.xml.in \
+    slcfk.xml.in
 
 dist_plugins_DATA = \
     $(dist_plugins_in_files:.xml.in=.xml) \
@@ -13,7 +14,8 @@ dist_plugins_DATA = \
     bitbucket.png \
     gnome.png \
     ssnet.png \
-    own-server.png
+    own-server.png \
+	  slcfk.png
 
 #@INTLTOOL_XML_RULE@
 
