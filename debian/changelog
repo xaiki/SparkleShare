@@ -1,3 +1,19 @@
+sparkleshare (0.9.0-2) unstable; urgency=low
+
+  [ Chow Loong Jin ]
+  * [bcdc7ef] Fix watch file
+
+  [ Iain Lane ]
+  * [40dd1a8] Add missing epoch to git versioned dependency
+
+  [ Carlos Martín Nieto ]
+  * [1cf4989] debian/patches: add
+    0001-linux-statusicon-Fix-statusicon-animation.-Closes-84.patch.  Fill the
+    status icon array correctly so the in-progress animation gets shown
+    instead of blinking.
+
+ -- Carlos Martín Nieto <carlos@cmartin.tk>  Mon, 23 Jul 2012 21:43:27 +0100
+
 sparkleshare (0.9.0-1) unstable; urgency=low
 
   * [50bd5da] Imported Upstream version 0.9.0
