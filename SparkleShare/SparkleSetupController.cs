@@ -492,10 +492,12 @@ namespace SparkleShare {
             if (ChangePageEvent != null)
                 ChangePageEvent (PageType.Syncing, null);
 
-            if (!PendingInvite.Accept ()) {
-                if (ChangePageEvent != null)
-                    ChangePageEvent (PageType.Error, null);
+            string [] warnings = new string [1];
+            if (!PendingInvite.Accept (warnings)) {
+                if (ChangePageEvent != null) {
 
+                    ChangePageEvent (PageType.Error, warnings);
+                  }
                 return;
             }
 
